@@ -18,8 +18,8 @@ app.use(express.urlencoded({ limit: '50mb' }));
 // 	console.log('Drop and re-sync db.');
 // });
 
-app.get('/moralis', (req, res) => {
-	console.log("Request raised from Moralis Server...")
+app.get('/healthpoint', (req, res) => {
+	console.log("Request raised for Server Health...")
 });
 
 app.get('/', (req, res) => {
