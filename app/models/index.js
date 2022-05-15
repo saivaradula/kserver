@@ -1,8 +1,8 @@
 const dbConfig = require('../config/db.config.js');
 const Sequelize = require('sequelize');
-
+let sequelize = '';
 try {
-	const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
+	sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
 		host: dbConfig.HOST,
 		port: dbConfig.PORT,
 		dialect: dbConfig.dialect,
@@ -16,7 +16,7 @@ try {
 	});
 
 } catch (e) {
-	console.log(e.getMessage());
+	console.log(e);
 }
 const db = {};
 
