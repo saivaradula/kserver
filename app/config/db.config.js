@@ -1,9 +1,10 @@
 module.exports = {
-	HOST: 'kadalis-do-user-4737240-0.b.db.ondigitalocean.com:25060',
+	HOST: 'kadalis-do-user-4737240-0.b.db.ondigitalocean.com',
 	USER: 'doadmin',
 	PASSWORD: 'AVNS_RsKxQcsCRh74ubJ',
 	DB: 'kadalis',
 	dialect: 'mysql',
+	PORT: 25060,
 	pool: {
 		max: 5,
 		min: 0,

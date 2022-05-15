@@ -110,7 +110,8 @@ exports.addDraft = (req) => {
 };
 
 exports.getDrafts = (end) => {
-	const sql = `SELECT i.invoice_id AS invoice,
+	try {
+		const sql = `SELECT i.invoice_id AS invoice,
 		COUNT(p.code) AS totalProducts,
 		SUM(p.cost) AS totalCost,
 		i.createdOn AS CreatedOn,
@@ -125,9 +126,13 @@ exports.getDrafts = (end) => {
 				AND i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${end} `;
-	return db.sequelize.query(sql, {
-		type: db.sequelize.QueryTypes.SELECT,
-	});
+		return db.sequelize.query(sql, {
+			type: db.sequelize.QueryTypes.SELECT,
+		});
+	} catch (e) {
+		console.log(e.getMessage());
+	}
+
 };
 
 exports.getAddressOfInvoice = (id) => {

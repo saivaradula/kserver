@@ -48,9 +48,14 @@ exports.getDraftInvoices = (req, res) => {
 	page = 10;
 	let end = page > 1 ? page * 10 : 10;
 
-	invoice.getDrafts(end).then((response) => {
-		return res.send(response).status(200);
-	});
+	try {
+		invoice.getDrafts(end).then((response) => {
+			return res.send(response).status(200);
+		});
+	} catch (e) {
+		console.log(e.getMessage());
+	}
+
 };
 
 exports.getInvoicePayments = (req, res) => {

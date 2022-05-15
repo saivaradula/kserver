@@ -23,6 +23,7 @@ app.get('/moralis', (req, res) => {
 });
 
 app.get('/', (req, res) => {
+	console.log('test')
 	res.json({ message: "Welcome to Kadali's store backend application." });
 });
 
