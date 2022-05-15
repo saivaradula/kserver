@@ -14,11 +14,16 @@ exports.getAllCategories = (req) => {
 	let page = req.params.p;
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 10) : 0;
-	return category.findAll({
-		offset: ofst,
-		limit: 10,
-		order: [['id', 'desc']],
-	});
+	try {
+		return category.findAll({
+			offset: ofst,
+			limit: 10,
+			order: [['id', 'desc']],
+		});
+	} catch (e) {
+		console.log(e.getMessage());
+	}
+
 };
 
 exports.getTotalCategories = () => {
