@@ -1,7 +1,7 @@
 module.exports = {
-	HOST: 'localhost',
-	USER: 'root',
-	PASSWORD: 'root',
+	HOST: 'kadalis-do-user-4737240-0.b.db.ondigitalocean.com:25060',
+	USER: 'doadmin',
+	PASSWORD: 'AVNS_RsKxQcsCRh74ubJ',
 	DB: 'kadalis',
 	dialect: 'mysql',
 	pool: {
