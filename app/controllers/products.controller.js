@@ -26,6 +26,25 @@ exports.updateProduct = (req, res) => {
 	});
 };
 
+exports.deleteCode = (req, res) => {
+	products.deleteCode(req).then((response) => {
+		return res.send(response).status(200);
+	});
+}
+
+exports.getNextCode = (req, res) => {
+	products.getNextCode(req).then((response) => {
+		let returnS = req.params.code
+		let nextNum = parseInt(response[0].C) + 1;
+		returnS = (nextNum < 10) ? returnS + '000' + nextNum :
+			(nextNum < 100) ? returnS + '00' + nextNum :
+				(nextNum < 1000) ? returnS + '0' + nextNum :
+					returnS + nextNum;
+
+		return res.send(returnS).status(200);
+	});
+}
+
 exports.getConsumed = (req, res) => {
 	products
 		.getConsumed(req.body.code, req.body.sdate, req.body.edate)
