@@ -3,8 +3,21 @@ const db = require('../models');
 const products = db.products;
 const Op = db.Sequelize.Op;
 
+const escape = s => {
+	let lookup = {
+		'&': "&amp;",
+		'"': "&quot;",
+		'\'': "&apos;",
+		'<': "&lt;",
+		'>': "&gt;"
+	};
+	return s.replace(/[&"'<>]/g, c => lookup[c]);
+}
+
 exports.getTotalProducts = () => {
-	return products.findAll();
+	return products.findAll({
+		where: { status: 1 }
+	});
 };
 
 exports.getAllProducts = (req) => {
@@ -64,6 +77,7 @@ exports.deleteCode = req => {
 }
 
 exports.updateProduct = req => {
+	req.body.brand = escape(req.body.brand)
 	const sql = `UPDATE products SET 
 				name = '${req.body.name}',
 				code = '${req.body.code}',

@@ -22,7 +22,8 @@ exports.updateInvoice = req => {
 		herodirector = '${req.body.isWhat}',
 		name = '${req.body.isWhatName}',
 		vendoraddress = '${req.body.vendoraddress}',
-		payableamount = '${req.body.payableamount}'
+		payableamount = '${req.body.payableamount}',
+		prop_receiver_name = '${req.body.receiverName}'
 		WHERE invoice_id = ${req.body.invoice_id}
 	`;
 	return db.sequelize.query(sql, {
@@ -43,7 +44,7 @@ exports.addNewInvoice = (req) => {
 		art_director_name, content_type, prop_receiver,
 		startDate, endDate, gst, invoice_payment, totalCost,
 		invoice_status, discount, gstpercentage, finalamount,
-		herodirector, name, vendoraddress, payableamount)
+		herodirector, name, vendoraddress, payableamount, prop_receiver_name)
 	VALUES(
 		'${req.body.invoice_id}', '${itype}', '${req.body.toName}', '${req.body.address}', '${req.body.companyPhone}',
 		'${req.body.contactName}', '${req.body.contactPhone}', '${req.body.artPhone}',
@@ -51,7 +52,7 @@ exports.addNewInvoice = (req) => {
 		'${req.body.startDate}', '${req.body.endDate}', '${req.body.gst}', '${req.body.payment_type}', '${req.body.totalCost}',
 		'${invoiceStatus}', '${req.body.discount}', '${req.body.gstpercentage}', '${req.body.finalamount}',
 		'${req.body.isWhat}', '${req.body.isWhatName}', 
-		'${req.body.vendoraddress}', '${req.body.payableamount}'
+		'${req.body.vendoraddress}', '${req.body.payableamount}', '${req.body.receiver_name}'
 	); `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
@@ -120,7 +121,7 @@ exports.getDrafts = (end) => {
 		i.contactName, i.contactPhone,
 		i.name, i.herodirector, i.totalCost,
 		i.finalamount, i.gstpercentage, i.discount,
-		i.payableamount, i.to_name, i.to_phone
+		i.payableamount, i.to_name, i.to_phone, i.prop_receiver_name
 				FROM invoice i, invoice_products p
 				WHERE type = 'draft' 
 				AND i.invoice_id = p.invoice_id
@@ -189,7 +190,8 @@ exports.getDetails = (id) => {
 				i.name, i.herodirector, i.totalCost,
 				i.finalamount, i.gstpercentage, i.discount, i.gst,
 				i.herodirector AS isWhat, i.name AS isWhatName,
-				i.payableamount, i.vendoraddress, i.gst
+				i.payableamount, i.vendoraddress, i.gst,
+				i.prop_receiver_name
 				FROM invoice i, products p, invoice_products ip, invoice_status ist, invoice_payments_types ipt
 				WHERE i.invoice_id = ${id} 
 				AND p.code = ip.code 
@@ -265,6 +267,7 @@ exports.getInvoiceList = (to) => {
 		i.to_name, i.to_address, i.to_phone,
 		ist.value AS is_value,
 		ipt.value AS ip_value,
+		i.prop_receiver_name,
 		i.payableamount
 				FROM invoice i,
 		invoice_products p,
@@ -291,6 +294,7 @@ exports.getPaidInvoiceList = (to) => {
 				i.to_name, i.to_address, i.to_phone,
 				ist.value AS is_value,
 				ipt.value AS ip_value,
+				i.prop_receiver_name,
 				i.paid_on, i.transaction_id, i.payment_method, i.payableamount
 				FROM invoice i,
 		invoice_products p,
