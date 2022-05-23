@@ -31,13 +31,30 @@ exports.updateInvoice = req => {
 	});
 }
 
-exports.addNewInvoice = (req) => {
+const getFirstLetter = (words) => {
+	let matches = words.match(/\b(\w)/g);
+	return matches.join('').toUpperCase();
+}
+
+
+exports.findInvoiceById = invid => {
+	const sqlCheck = `SELECT count(invoice_id) AS Ids
+						FROM invoice WHERE invoice_id LIKE '%${invid}%'`;
+	return db.sequelize.query(sqlCheck, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
+
+exports.addNewInvoice = async (req) => {
 	let invoiceStatus = 1;
 	let itype = 'draft';
 	if (req.body.payment_type === 4) {
 		invoiceStatus = 2;
 		itype = 'invoice'; // As advanced is paid.
 	}
+
+
 	const sql = `INSERT INTO invoice(
 		invoice_id, type, to_name, to_address, to_phone,
 		contactname, contactphone, art_phone,
@@ -54,14 +71,11 @@ exports.addNewInvoice = (req) => {
 		'${req.body.isWhat}', '${req.body.isWhatName}', 
 		'${req.body.vendoraddress}', '${req.body.payableamount}', '${req.body.receiver_name}'
 	); `;
+
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
 	});
 };
-
-// exports.getdetails = (id) => {
-
-// }
 
 exports.addPayment = (req) => {
 	const sql = `INSERT INTO invoice_payments(
@@ -140,7 +154,7 @@ exports.getAddressOfInvoice = (id) => {
 	const sql = `SELECT
 	i.to_name, i.to_address, i.to_city, i.gst
 				FROM invoice i
-				WHERE i.invoice_id = ${id} `;
+				WHERE i.invoice_id = '${id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -193,7 +207,7 @@ exports.getDetails = (id) => {
 				i.payableamount, i.vendoraddress, i.gst,
 				i.prop_receiver_name
 				FROM invoice i, products p, invoice_products ip, invoice_status ist, invoice_payments_types ipt
-				WHERE i.invoice_id = ${id} 
+				WHERE i.invoice_id = '${id}'
 				AND p.code = ip.code 
 				AND i.invoice_id = ip.invoice_id
 				AND ist.id = i.invoice_status

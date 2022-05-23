@@ -1,11 +1,25 @@
 const invoice = require('../services/invoice.services');
 
+const getFirstLetter = (words) => {
+	let matches = words.match(/\b(\w)/g);
+	return matches.join('').toUpperCase();
+}
+
 exports.addNewInvoice = (req, res) => {
-	invoice.addNewInvoice(req).then((response) => {
-		invoice.addPayment(req).then((resp) => {
-			return res.send(response).status(200);
+	let d = new Date();
+	let nd = getFirstLetter(req.body.toName) + "-" + d.getFullYear() + (d.getMonth() + 1) + d.getDate();
+	invoice.findInvoiceById(nd).then((resp) => {
+		console.log(resp)
+		let id = resp[0].Ids ? parseInt(resp[0].Ids) + 1 : 1;
+		req.body.invoice_id = nd + "-" + id;
+		id = req.body.invoice_id;
+		invoice.addNewInvoice(req).then((response) => {
+			invoice.addPayment(req).then((resp) => {
+				console.log(id)
+				return res.send(id).status(200);
+			});
 		});
-	});
+	})
 };
 
 exports.updateInvoice = (req, res) => {
