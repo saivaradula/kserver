@@ -24,7 +24,7 @@ exports.updateInvoice = req => {
 		vendoraddress = '${req.body.vendoraddress}',
 		payableamount = '${req.body.payableamount}',
 		prop_receiver_name = '${req.body.receiverName}'
-		WHERE invoice_id = ${req.body.invoice_id}
+		WHERE invoice_id = '${req.body.invoice_id}'
 	`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
@@ -96,7 +96,7 @@ exports.addPayment = (req) => {
 };
 
 exports.changePaymentType = (ptype, id) => {
-	const sql = `UPDATE invoice SET invoice_payment = ${ptype} WHERE invoice_id = ${id} `;
+	const sql = `UPDATE invoice SET invoice_payment = ${ptype} WHERE invoice_id = '${id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
@@ -107,7 +107,7 @@ exports.addAddress = (req) => {
 	SET
 	to_name = '${req.body.toName}', to_address = '${req.body.address}',
 		to_phone = '${req.body.city}', gst = '${req.body.gst}'
-					WHERE invoice_id = ${req.params.id} `;
+					WHERE invoice_id = '${req.params.id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
@@ -167,7 +167,7 @@ exports.getInvoicePayments = (invoiceId) => {
 				FROM invoice_payments i, invoice_payments_types p
 	WHERE
 	i.payment_type = p.id AND
-	i.invoice_id = ${invoiceId} `;
+	i.invoice_id = '${invoiceId}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -246,7 +246,7 @@ exports.invoicePayment = (req) => {
 		transaction_id = '${req.body.transId}',
 		invoice_payment = 2,
 		paid_on = '${nd}'
-				WHERE invoice_id = ${req.params.id} `;
+				WHERE invoice_id = '${req.params.id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
@@ -260,14 +260,14 @@ exports.markIt = (id) => {
 };
 
 exports.markAsPaid = (id) => {
-	const sql = `UPDATE invoice SET type = 'paid', invoice_payment = 2 WHERE invoice_id = ${id} `;
+	const sql = `UPDATE invoice SET type = 'paid', invoice_payment = 2 WHERE invoice_id = '${id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
 };
 
 exports.markStatusChange = (id, statusId) => {
-	const sql = `UPDATE invoice SET invoice_status = ${statusId} WHERE invoice_id = ${id} `;
+	const sql = `UPDATE invoice SET invoice_status = ${statusId} WHERE invoice_id = '${id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
