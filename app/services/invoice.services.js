@@ -167,7 +167,9 @@ exports.getInvoicePayments = (invoiceId) => {
 				FROM invoice_payments i, invoice_payments_types p
 	WHERE
 	i.payment_type = p.id AND
-	i.invoice_id = '${invoiceId}' `;
+	i.invoice_id = '${invoiceId}' 
+	ORDER BY i.id DESC
+	`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
