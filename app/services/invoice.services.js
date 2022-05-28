@@ -220,11 +220,55 @@ exports.getDetails = (id) => {
 	});
 };
 
-exports.removeItem = (id, code) => {
-	const sql = `DELETE FROM invoice_products
+exports.getInvoiceAmounts = (id) => {
+	const sql = `SELECT
+					i.totalCost,
+					i.finalamount, i.gstpercentage, i.discount,					
+					i.payableamount
+				FROM invoice i
+				WHERE i.invoice_id = '${id}'
+	`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
+exports.removeItem = async (id, code, price) => {
+
+	let p = await this.getInvoiceAmounts(id);
+	let { totalCost, finalamount, gstpercentage, discount, payableamount } = p[0];
+
+	totalCost = parseFloat(totalCost - price);
+	finalamount = totalCost;
+	payableamount = totalCost;
+
+	if (discount) {
+		let d = parseFloat(totalCost * (discount / 100));
+		finalamount = parseFloat(totalCost - d);
+		payableamount = finalamount;
+	}
+
+	if (gstpercentage > 0) {
+		let gst = parseFloat(finalamount * (gstpercentage / 100))
+		payableamount = parseFloat(finalamount + gst);
+	}
+
+	const sql = `UPDATE invoice SET 
+					totalCost = ${totalCost.toFixed(2)},
+					finalamount = ${finalamount.toFixed(2)},
+					payableamount = ${payableamount.toFixed(2)}
+				WHERE invoice_id = '${id}'
+				`;
+
+	await db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.UPDATE,
+	});
+
+	const sqlD = `DELETE FROM invoice_products
 				WHERE code = '${code}'
 				AND invoice_id = '${id}'`;
-	return db.sequelize.query(sql, {
+
+	return db.sequelize.query(sqlD, {
 		type: db.sequelize.QueryTypes.DELETE,
 	});
 };
@@ -255,7 +299,7 @@ exports.invoicePayment = (req) => {
 };
 
 exports.markIt = (id) => {
-	const sql = `UPDATE invoice SET type = 'invoice' WHERE invoice_id = ${id} `;
+	const sql = `UPDATE invoice SET type = 'invoice' WHERE invoice_id = '${id}' `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});

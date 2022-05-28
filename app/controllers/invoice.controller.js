@@ -1,21 +1,27 @@
 const invoice = require('../services/invoice.services');
+const product = require('../services/product.services');
 
 const getFirstLetter = (words) => {
 	let matches = words.match(/\b(\w)/g);
 	return matches.join('').toUpperCase();
 }
 
+const intToChar = (int) => {
+	const code = 'A'.charCodeAt(0);
+	console.log(code);
+	return String.fromCharCode(code + int);
+}
+
 exports.addNewInvoice = (req, res) => {
 	let d = new Date();
-	let nd = getFirstLetter(req.body.toName) + "-" + d.getFullYear() + (d.getMonth() + 1) + d.getDate();
+	let nd = getFirstLetter(req.body.toName) + "-" + d.getFullYear() + (d.toLocaleString('en-us', { month: 'short' }).toUpperCase()) + d.getDate();
 	invoice.findInvoiceById(nd).then((resp) => {
 		console.log(resp)
-		let id = resp[0].Ids ? parseInt(resp[0].Ids) + 1 : 1;
-		req.body.invoice_id = nd + "-" + id;
+		let id = resp[0].Ids ? parseInt(resp[0].Ids) : 0;
+		req.body.invoice_id = nd + "-" + intToChar(id);
 		id = req.body.invoice_id;
 		invoice.addNewInvoice(req).then((response) => {
 			invoice.addPayment(req).then((resp) => {
-				console.log(id)
 				return res.send(id).status(200);
 			});
 		});
@@ -84,9 +90,9 @@ exports.getInvoiceDetails = (req, res) => {
 	});
 };
 
-exports.removeItemFromEstimate = (req, res) => {
-	invoice.removeItem(req.params.id, req.params.code).then((response) => {
-		this.getInvoiceDetails(req, res);
+exports.removeItemFromEstimate = async (req, res) => {
+	invoice.removeItem(req.params.id, req.params.code, req.params.cost).then((response) => {
+		return this.getInvoiceDetails(req, res);
 	});
 };
 
