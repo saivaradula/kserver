@@ -8,6 +8,7 @@ router.get('/:id/address', invoice.getAddressOfInvoice);
 router.post('/:id/address', invoice.addAddress);
 router.get('/:id/details', invoice.getInvoiceDetails);
 router.get('/:id/payments', invoice.getInvoicePayments);
+router.delete('/:id/delete', invoice.deleteInv)
 router.delete('/:id/:code/:cost', invoice.removeItemFromEstimate);
 router.post('/mark/:id', invoice.markAsInvoice);
 router.post('/:id/mark/:as', invoice.markStatusChange);

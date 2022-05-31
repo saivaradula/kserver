@@ -35,13 +35,13 @@ exports.getAllProducts = (req) => {
 exports.getConsumed = (id, sdate, edate) => {
 	try {
 		let sql = `SELECT SUM(ip.quantity) AS consumed FROM 
-invoice_products ip, invoice i
-WHERE code = '${id}' AND 
-i.invoice_id = ip.invoice_id AND ( i.type = 'invoice' OR i.type = 'draft')
-AND
-( ( '${sdate}' BETWEEN ip.startDate AND ip.endDate )
-OR ( '${edate}' BETWEEN ip.startDate AND ip.endDate ) )
-GROUP BY ip.code`;
+				invoice_products ip, invoice i
+				WHERE code = '${id}' AND ip.status = 1 AND i.status = 1 AND
+				i.invoice_id = ip.invoice_id AND ( i.type = 'invoice' OR i.type = 'draft')
+				AND
+				( ( '${sdate}' BETWEEN ip.startDate AND ip.endDate )
+				OR ( '${edate}' BETWEEN ip.startDate AND ip.endDate ) )
+				GROUP BY ip.code`;
 		return db.sequelize.query(sql, {
 			type: db.sequelize.QueryTypes.SELECT,
 		});

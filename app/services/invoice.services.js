@@ -128,7 +128,6 @@ exports.getDrafts = (end) => {
 	try {
 		const sql = `SELECT i.invoice_id AS invoice,
 		COUNT(p.code) AS totalProducts,
-		SUM(p.cost) AS totalCost,
 		i.createdOn AS CreatedOn,
 		i.startDate AS startDate,
 		i.endDate AS endDate,
@@ -177,6 +176,7 @@ exports.getInvoicePayments = (invoiceId) => {
 
 exports.getDetails = (id) => {
 	const sql = `SELECT
+				i.invoice_id,
 				p.id AS product_id,
 				p.name AS product_name,
 				p.category AS product_category,
@@ -233,6 +233,14 @@ exports.getInvoiceAmounts = (id) => {
 	});
 }
 
+exports.deleteInvoice = async (id) => {
+	const sql = `UPDATE invoice SET status = 0
+				WHERE invoice_id = '${id}'`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.UPDATE,
+	});
+}
+
 exports.removeItem = async (id, code, price) => {
 
 	let p = await this.getInvoiceAmounts(id);
@@ -264,7 +272,8 @@ exports.removeItem = async (id, code, price) => {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
 
-	const sqlD = `DELETE FROM invoice_products
+	const sqlD = `UPDATE invoice_products
+					SET status = 0
 				WHERE code = '${code}'
 				AND invoice_id = '${id}'`;
 

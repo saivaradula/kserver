@@ -90,6 +90,12 @@ exports.getInvoiceDetails = (req, res) => {
 	});
 };
 
+exports.deleteInv = async (req, res) => {
+	invoice.deleteInvoice(req.params.id).then((response) => {
+		return res.send(response).status(200);
+	});
+}
+
 exports.removeItemFromEstimate = async (req, res) => {
 	invoice.removeItem(req.params.id, req.params.code, req.params.cost).then((response) => {
 		return this.getInvoiceDetails(req, res);
