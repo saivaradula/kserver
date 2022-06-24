@@ -92,7 +92,8 @@ exports.updateProduct = req => {
 				model = '${req.body.model}',
 				unit = '${req.body.unit}',
 				prtype = '${req.body.prtype}',
-				nickname = '${req.body.sname}'
+				nickname = '${req.body.sname}',
+				godawan = '${req.body.godawan}'
 				WHERE id = ${req.body.id}
 	`;
 	return db.sequelize.query(sql, {
@@ -102,11 +103,11 @@ exports.updateProduct = req => {
 
 exports.add = (req) => {
 	const sql = `INSERT INTO products (name, code, image, category, brand, cost, price, quantity, 
-		alert, model, subcategory, unit, prtype, nickname)
+		alert, model, subcategory, unit, prtype, nickname, godawan)
 		VALUES ('${req.body.name}', '${req.body.code}', "${req.body.prodImage}", '${req.body.category}',
 		'${req.body.brand}', '${req.body.cost}', '${req.body.price}', '${req.body.quantity}', 
 		'${req.body.alertNum}', '${req.body.model}', '${req.body.subcategory}', 
-		'${req.body.unit}', '${req.body.prtype}', '${req.body.sname}');
+		'${req.body.unit}', '${req.body.prtype}', '${req.body.sname}', '${req.body.godawan}');
 	`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
