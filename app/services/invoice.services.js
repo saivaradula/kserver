@@ -410,7 +410,6 @@ exports.getPaidInvoiceList = (to) => {
 				AND i.status = 1 AND p.status = 1
 				AND ist.id = i.invoice_status
 				AND ipt.id = i.invoice_payment
-				AND i.isPrinted = 0
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${to} `;
 
 	return db.sequelize.query(sql, {
