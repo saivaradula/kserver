@@ -149,6 +149,15 @@ exports.getDrafts = (end) => {
 
 };
 
+exports.markInvoiceAsPrint = (id) => {
+	const sql = `UPDATE invoice 
+				SET isPrinted = 1
+				WHERE invoice_id = '${id}' `;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.UPDATE,
+	});
+};
+
 exports.getAddressOfInvoice = (id) => {
 	const sql = `SELECT
 	i.to_name, i.to_address, i.to_city, i.gst
@@ -328,6 +337,33 @@ exports.markStatusChange = (id, statusId) => {
 	});
 };
 
+exports.getPrintedList = (to) => {
+	const sql = `SELECT i.invoice_id AS invoice,
+				COUNT(p.code) AS totalProducts,
+				SUM(p.cost) AS totalCost,
+				i.startDate AS CreatedOn,
+				i.to_name, i.to_address, i.to_phone,
+				ist.value AS is_value,
+				ipt.value AS ip_value,
+				i.prop_receiver_name,
+				i.paid_on, i.transaction_id, i.payment_method, i.payableamount
+				FROM invoice i,
+		invoice_products p,
+			invoice_status ist,
+				invoice_payments_types ipt
+				WHERE type = 'paid' 
+				AND i.invoice_id = p.invoice_id
+				AND i.status = 1 AND p.status = 1
+				AND ist.id = i.invoice_status
+				AND ipt.id = i.invoice_payment
+				AND i.isPrinted = 1
+				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${to} `;
+
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+};
+
 exports.getInvoiceList = (to) => {
 	const sql = `SELECT i.invoice_id AS invoice,
 		COUNT(p.code) AS totalProducts,
@@ -374,6 +410,7 @@ exports.getPaidInvoiceList = (to) => {
 				AND i.status = 1 AND p.status = 1
 				AND ist.id = i.invoice_status
 				AND ipt.id = i.invoice_payment
+				AND i.isPrinted = 0
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${to} `;
 
 	return db.sequelize.query(sql, {

@@ -56,6 +56,14 @@ exports.addAddress = (req, res) => {
 	});
 };
 
+
+
+exports.markInvoiceAsPrint = (req, res) => {
+	invoice.markInvoiceAsPrint(req.params.id).then((response) => {
+		return res.send(response).status(200);
+	});
+};
+
 exports.getAddressOfInvoice = (req, res) => {
 	invoice.getAddressOfInvoice(req.params.id).then((response) => {
 		return res.send(response).status(200);
@@ -139,6 +147,16 @@ exports.markStatusChange = (req, res) => {
 };
 
 // ========== Invoices.
+
+exports.getPrintedList = (req, res) => {
+	let page = req.body.page;
+	// TODO:: remove this. this is before pagination.
+	page = 10;
+	let to = page > 1 ? page * 10 : 10;
+	invoice.getPrintedList(to).then((response) => {
+		return res.send(response).status(200);
+	});
+};
 
 exports.getInvoiceList = (req, res) => {
 	let page = req.body.page;
