@@ -177,3 +177,15 @@ exports.getPaidInvoiceList = (req, res) => {
 		return res.send(response).status(200);
 	});
 };
+
+exports.searchInvoices = (req, res) => {
+	let ss = req.body.ss;
+	let page = req.body.page;
+	// TODO:: remove this. this is before pagination.
+	page = 10;
+	let to = page > 1 ? page * 10 : 10;
+	invoice.searchInvoices(ss, to).then((response) => {
+		return res.send(response).status(200);
+	});
+};
+

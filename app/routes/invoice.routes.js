@@ -20,4 +20,7 @@ router.get('/list', invoice.getInvoiceList);
 router.post('/markpaid/:id', invoice.markAsPaid);
 router.get('/paid', invoice.getPaidInvoiceList);
 
+// returns. 
+router.post('/search', invoice.searchInvoices)
+
 module.exports = router;
