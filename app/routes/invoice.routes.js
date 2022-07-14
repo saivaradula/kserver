@@ -22,5 +22,7 @@ router.get('/paid', invoice.getPaidInvoiceList);
 
 // returns. 
 router.post('/search', invoice.searchInvoices)
+router.get('/return/:id/items/:pid', invoice.validateReturnProduct)
+router.post('/return', invoice.returnProducts)
 
 module.exports = router;

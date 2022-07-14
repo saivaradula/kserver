@@ -8,7 +8,6 @@ const getFirstLetter = (words) => {
 
 const intToChar = (int) => {
 	const code = 'A'.charCodeAt(0);
-	console.log(code);
 	return String.fromCharCode(code + int);
 }
 
@@ -189,3 +188,23 @@ exports.searchInvoices = (req, res) => {
 	});
 };
 
+exports.validateReturnProduct = (req, res) => {
+	let pid = req.params.pid;
+	let id = req.params.id;
+	invoice.validateReturnProduct(id, pid).then(response => {
+		console.log(response);
+		if (response.length) {
+			product.getProductDetails(pid).then(resp => {
+				resp[0].quantity = response[0].quantity
+				return res.send(resp).status(200);
+			})
+		} else {
+			return res.send(response).status(200);
+		}
+		// return res.send(response).status(200);
+	})
+}
+
+exports.returnProducts = (req, res) => {
+	console.log(req.body)
+}

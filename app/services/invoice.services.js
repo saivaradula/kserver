@@ -392,6 +392,7 @@ exports.getInvoiceList = (to) => {
 };
 
 exports.searchInvoices = (ss, to) => {
+	ss = ss.toLowerCase();
 	const sql = `SELECT i.invoice_id AS invoice,
 				COUNT(p.code) AS totalProducts,
 				SUM(p.cost) AS totalCost,
@@ -409,13 +410,15 @@ exports.searchInvoices = (ss, to) => {
 				AND i.status = 1 AND p.status = 1
 				AND ist.id = i.invoice_status
 				AND ipt.id = i.invoice_payment
-				AND type = 'paid' 
+				AND type != 'draft' 
 				AND (
-					to_name LIKE '%${ss}%'
+					LOWER(i.invoice_id) LIKE '%${ss}%'
+					OR
+					LOWER(to_name) LIKE '%${ss}%'
 					OR 
-					art_director_name LIKE '%${ss}%'
+					LOWER(art_director_name) LIKE '%${ss}%'
 					OR 
-					prop_receiver_name LIKE '%${ss}%'
+					LOWER(prop_receiver_name) LIKE '%${ss}%'
 				)
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${to} `;
 
@@ -449,3 +452,14 @@ exports.getPaidInvoiceList = (to) => {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
 };
+
+exports.validateReturnProduct = (id, pid) => {
+	const sql = `SELECT id, quantity
+					FROM invoice_products ip 
+					WHERE code = '${pid}'
+					AND invoice_id = '${id}'
+					`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
