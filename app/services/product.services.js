@@ -34,9 +34,10 @@ exports.getAllProducts = (req) => {
 
 exports.getConsumed = (id, sdate, edate) => {
 	try {
-		let sql = `SELECT SUM(ip.quantity) AS consumed FROM 
-				invoice_products ip, invoice i
-				WHERE code = '${id}' AND ip.status = 1 AND i.status = 1 AND
+		let sql = `SELECT SUM(ip.quantity) 
+				FROM 
+				invoice_products ip, invoice i 
+				WHERE ip.code = '${id}' AND ip.status = 1 AND i.status = 1 AND
 				i.invoice_id = ip.invoice_id AND ( i.type = 'invoice' OR i.type = 'draft')
 				AND
 				( ( '${sdate}' BETWEEN ip.startDate AND ip.endDate )

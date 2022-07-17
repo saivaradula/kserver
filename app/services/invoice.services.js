@@ -1,7 +1,15 @@
 const { now } = require('sequelize/dist/lib/utils');
 const db = require('../models');
+const { getPercentagesForNew, getPercentagesForOld } = require('./daycounter')
 const invoice = db.invoice;
 const Op = db.Sequelize.Op;
+
+const PRTYPES = {
+	NEW: 'new',
+	OLD: 'old',
+	ANTIQUE: 'antique',
+	DAMAGE: 'damage'
+}
 
 exports.updateInvoice = req => {
 	const sql = `UPDATE invoice SET 
@@ -428,19 +436,21 @@ exports.searchInvoices = (ss, to) => {
 }
 
 exports.getPaidInvoiceList = (to) => {
-	const sql = `SELECT i.invoice_id AS invoice,
-				COUNT(p.code) AS totalProducts,
-				SUM(p.cost) AS totalCost,
-				i.startDate AS CreatedOn,
-				i.to_name, i.to_address, i.to_phone,
-				ist.value AS is_value,
-				ipt.value AS ip_value,
-				i.prop_receiver_name,
-				i.paid_on, i.transaction_id, i.payment_method, i.payableamount
-				FROM invoice i,
-		invoice_products p,
-			invoice_status ist,
-				invoice_payments_types ipt
+	const sql = `SELECT 
+					i.invoice_id AS invoice,
+					COUNT(p.code) AS totalProducts,
+					SUM(p.cost) AS totalCost,
+					i.startDate AS CreatedOn,
+					i.to_name, i.to_address, i.to_phone,
+					ist.value AS is_value,
+					ipt.value AS ip_value,
+					i.prop_receiver_name,
+					i.paid_on, i.transaction_id, i.payment_method, i.payableamount
+				FROM 
+					invoice i,
+					invoice_products p,
+					invoice_status ist,
+					invoice_payments_types ipt
 				WHERE type = 'paid' 
 				AND i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
@@ -463,3 +473,212 @@ exports.validateReturnProduct = (id, pid) => {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
 }
+
+exports.addReturnProducts = (product, retDate, invoice_id) => {
+	const sql = `INSERT INTO return_products
+					( invoice_id, code,quantity, returned_date, is_damaged, damage_cost) 
+					VALUES (
+						'${invoice_id}', '${product.code}', '${product.rquantity}', 
+						'${retDate}', '${product.isDamaged}', '${product.damaged_cost}'
+					)
+				`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.INSERT,
+	});
+}
+
+exports.returnList = async (req) => {
+	let cond = req.body.type === 'damaged' ? 1 : 0;
+	const sql = `SELECT
+					rp.invoice_id AS invoice,
+					SUM(rp.quantity) AS totalProducts,
+					i.to_name,
+					i.to_address,
+					i.content_type,
+					i.contactname,
+					rp.returned_date
+				FROM
+					invoice i,
+					return_products rp
+				WHERE 
+					rp.invoice_id = i.invoice_id AND rp.is_damaged = ${cond}
+				GROUP BY
+					rp.invoice_id
+				ORDER BY
+					rp.id
+				DESC
+				LIMIT 0, 100`;
+	return await db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
+exports.updateEndDates = async (p, product, retDate, invoice_id) => {
+	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE 
+			invoice_id = '${invoice_id}'
+			AND code = '${product.code}'`;
+
+	const results = await db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+
+	let t = new Date(retDate)
+	let cost = 0;
+	let d = t.getTime() - results[0].startDate.getTime();
+	d = Math.ceil(d / (1000 * 3600 * 24)) + 1
+
+	switch (p[0].prtype) {
+		case PRTYPES.ANTIQUE:
+		case PRTYPES.NEW: {
+			cost = (
+				(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+					parseInt(results[0].quantity)).toFixed(2)
+			)
+			break;
+		}
+		case PRTYPES.DAMAGE:
+		case PRTYPES.OLD: {
+			cost = (
+				(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+					parseInt(results[0].quantity)).toFixed(2)
+			)
+			break;
+		}
+	}
+
+	if (product.rquantity < results[0].quantity) {
+		// add new record in invoice and less the number.
+		let ss = new Date(results[0].startDate)
+		let s = ss.getFullYear() + '-' + (ss.getMonth() + 1) + '-' + ss.getDate()
+		let q = product.rquantity;
+
+		switch (p[0].prtype) {
+			case PRTYPES.ANTIQUE:
+			case PRTYPES.NEW: {
+				cost = (
+					(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+						parseInt(q)).toFixed(2)
+				)
+				break;
+			}
+			case PRTYPES.DAMAGE:
+			case PRTYPES.OLD: {
+				cost = (
+					(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+						parseInt(q)).toFixed(2)
+				)
+				break;
+			}
+		}
+
+		const insSql = `INSERT INTO invoice_products 
+				  ( endDate, days, cost, invoice_id, code, startDate, quantity, rstatus )
+				  VALUES (
+					'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
+					'${s}', ${q}, 'R'
+				  )`
+
+		await db.sequelize.query(insSql, {
+			type: db.sequelize.QueryTypes.UPDATE,
+		});
+
+		// update the old quantity and cost
+		let quantity = results[0].quantity - q;
+
+		switch (p[0].prtype) {
+			case PRTYPES.ANTIQUE:
+			case PRTYPES.NEW: {
+				cost = (
+					(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+						parseInt(quantity)).toFixed(2)
+				)
+				break;
+			}
+			case PRTYPES.DAMAGE:
+			case PRTYPES.OLD: {
+				cost = (
+					(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+						parseInt(quantity)).toFixed(2)
+				)
+				break;
+			}
+		}
+
+		const updSql = `UPDATE invoice_products 
+				  SET 
+				  	quantity = ${quantity}, 
+				  	cost = ${cost}
+				  WHERE 
+				  	id = '${results[0].id}'`
+
+		await db.sequelize.query(updSql, {
+			type: db.sequelize.QueryTypes.UPDATE,
+		});
+
+	}
+	else {
+
+		// update invoice records.
+		const updSql = `UPDATE invoice_products 
+				  SET endDate = '${retDate}', days = ${d}, cost = ${cost}, rstatus = 'R'
+				  WHERE 
+				  	invoice_id = '${invoice_id}' 
+				  AND 
+				  	code = '${product.code}'`
+
+		await db.sequelize.query(updSql, {
+			type: db.sequelize.QueryTypes.UPDATE,
+		});
+
+	}
+
+	// update price, finalprice and payableamount in invoice.
+
+	const invSql = `SELECT id, gstpercentage, discount FROM invoice 
+					WHERE  invoice_id = '${invoice_id}'`;
+
+	const invResults = await db.sequelize.query(invSql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+
+	let totalCost = 0;
+	let finalamount = 0;
+	let payableamount = 0;
+
+	// get total cost. ( sum of all products in invoice)
+
+	const sumSql = `SELECT 
+						SUM(cost) AS C 
+					FROM 
+						invoice_products 
+					WHERE				
+						invoice_id = '${invoice_id}'
+					GROUP BY 
+						invoice_id`;
+
+	const sumResults = await db.sequelize.query(sumSql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+
+	totalCost = parseFloat(sumResults[0].C).toFixed(2);
+
+	let discountAmt = totalCost * (invResults[0].discount / 100);
+	finalamount = totalCost - discountAmt;
+
+	let gstAmt = finalamount * (invResults[0].gstpercentage / 100)
+	payableamount = finalamount + gstAmt;
+
+	const updSql = `UPDATE invoice 
+					SET
+						totalCost = '${totalCost}', 
+						finalamount = '${finalamount}', 
+						payableamount = '${payableamount}'
+					WHERE  
+						id = '${invResults[0].id}'`;
+
+	await db.sequelize.query(updSql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+
+}
+
