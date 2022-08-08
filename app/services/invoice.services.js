@@ -191,6 +191,54 @@ exports.getInvoicePayments = (invoiceId) => {
 	});
 };
 
+exports.getReturnDetails = (id, isDamaged) => {
+	const sql = `SELECT
+				i.invoice_id,
+				p.id AS product_id,
+				p.name AS product_name,
+				p.category AS product_category,
+				p.model AS product_model,
+				p.createdAt AS created_on,
+				p.updatedAt AS updated_on,
+				p.code AS product_code,
+				p.brand AS product_brand,
+				p.prtype AS product_type,
+				rp.quantity AS quantity,
+				i.type AS invoice_type,
+				ip.days AS rent_days,
+				i.startDate AS rents_start_on,
+				p.subcategory AS product_subcategory,
+				p.image AS product_image,
+				i.to_name, i.to_address, 
+				i.invoice_status,
+				i.startDate AS startDate,
+				i.endDate AS endDate,
+				i.contactName, i.contactPhone,
+				i.art_director_name, i.content_type, i.prop_receiver, i.art_phone,
+				ip.startDate AS pStartDate, ip.endDate AS pEndDate,
+				i.paid_on, i.transaction_id, i.payment_method,
+				i.name, i.herodirector, i.totalCost,
+				i.finalamount, i.gstpercentage, i.discount, i.gst,
+				i.herodirector AS isWhat, i.name AS isWhatName,
+				i.payableamount, i.vendoraddress, i.gst,
+				i.prop_receiver_name
+				FROM invoice i, products p, 
+				invoice_products ip, return_products rp
+				WHERE i.invoice_id = '${id}'
+				AND ip.rstatus = 'R'
+				AND rp.is_damaged = ${isDamaged} AND
+				i.invoice_id = ip.invoice_id AND
+				i.invoice_id = rp.invoice_id AND
+				rp.invoice_id = i.invoice_id AND
+				rp.invoice_id = ip.invoice_id AND
+				rp.code = ip.code AND 
+				p.code = ip.code
+				`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+};
+
 exports.getDetails = (id) => {
 	const sql = `SELECT
 				i.invoice_id,

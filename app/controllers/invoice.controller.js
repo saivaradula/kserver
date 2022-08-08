@@ -227,5 +227,11 @@ exports.returnList = async (req, res) => {
 	invoice.returnList(req).then(resp => {
 		res.send(resp).status(200)
 	})
+}
 
+exports.getReturnDetails = async (req, res) => {
+	let t = req.params.type === 'returned' ? 0 : 1
+	invoice.getReturnDetails(req.params.id, t).then(resp => {
+		res.send(resp).status(200)
+	})
 }

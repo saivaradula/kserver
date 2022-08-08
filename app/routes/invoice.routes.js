@@ -25,5 +25,6 @@ router.post('/search', invoice.searchInvoices)
 router.get('/return/:id/items/:pid', invoice.validateReturnProduct)
 router.post('/return', invoice.returnProducts)
 router.post('/return/list', invoice.returnList)
+router.get('/return/:id/:type', invoice.getReturnDetails)
 
 module.exports = router;
