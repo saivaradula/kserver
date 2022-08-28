@@ -35,7 +35,16 @@ exports.deleteCode = (req, res) => {
 exports.getNC = async (code) => {
 	return await products.getNextCode(code).then((response) => {
 		let returnS = code
-		let nextNum = parseInt(response[0].C) + 1;
+		let nextNum = 0;
+		for (let i = 0; i < response.length; i++) {
+			let c = response[i].C.split(code)
+			if (i + 1 == c[1]) {
+			} else {
+				if (nextNum == 0)
+					nextNum = i + 1;
+			}
+		}
+		nextNum = nextNum ? nextNum : response.length + 1;
 		returnS = (nextNum < 10) ? returnS + '000' + nextNum :
 			(nextNum < 100) ? returnS + '00' + nextNum :
 				(nextNum < 1000) ? returnS + '0' + nextNum :
