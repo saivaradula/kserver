@@ -62,9 +62,9 @@ exports.getProductDetails = (id) => {
 	}
 };
 
-exports.getNextCode = req => {
+exports.getNextCode = code => {
 	const sql = `SELECT count(id) AS C FROM products 
-		WHERE code LIKE '%${req.params.code}%'`;
+		WHERE code LIKE '%${code}%'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});

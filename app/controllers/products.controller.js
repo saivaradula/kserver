@@ -32,17 +32,23 @@ exports.deleteCode = (req, res) => {
 	});
 }
 
-exports.getNextCode = (req, res) => {
-	products.getNextCode(req).then((response) => {
-		let returnS = req.params.code
+exports.getNC = async (code) => {
+	console.log("coe", code)
+	return await products.getNextCode(code).then((response) => {
+		let returnS = code
 		let nextNum = parseInt(response[0].C) + 1;
 		returnS = (nextNum < 10) ? returnS + '000' + nextNum :
 			(nextNum < 100) ? returnS + '00' + nextNum :
 				(nextNum < 1000) ? returnS + '0' + nextNum :
 					returnS + nextNum;
 
-		return res.send(returnS).status(200);
+		return returnS;
 	});
+}
+
+exports.getNextCode = (req, res) => {
+	let c = this.getNC(req.params.code)
+	return res.send(c).status(200)
 }
 
 exports.getConsumed = (req, res) => {
