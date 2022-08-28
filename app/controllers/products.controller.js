@@ -33,7 +33,6 @@ exports.deleteCode = (req, res) => {
 }
 
 exports.getNC = async (code) => {
-	console.log("coe", code)
 	return await products.getNextCode(code).then((response) => {
 		let returnS = code
 		let nextNum = parseInt(response[0].C) + 1;
@@ -46,8 +45,8 @@ exports.getNC = async (code) => {
 	});
 }
 
-exports.getNextCode = (req, res) => {
-	let c = this.getNC(req.params.code)
+exports.getNextCode = async (req, res) => {
+	let c = await this.getNC(req.params.code)
 	return res.send(c).status(200)
 }
 
