@@ -191,46 +191,89 @@ exports.getInvoicePayments = (invoiceId) => {
 	});
 };
 
-exports.getReturnDetails = (id, isDamaged) => {
-	const sql = `SELECT
-				i.invoice_id,
-				p.id AS product_id,
-				p.name AS product_name,
-				p.category AS product_category,
-				p.model AS product_model,
-				p.createdAt AS created_on,
-				p.updatedAt AS updated_on,
-				p.code AS product_code,
-				p.brand AS product_brand,
-				p.prtype AS product_type,
-				ip.quantity AS quantity,
-				i.type AS invoice_type,
-				ip.days AS rent_days,
-				i.startDate AS rents_start_on,
-				p.subcategory AS product_subcategory,
-				p.image AS product_image,
-				i.to_name, i.to_address, 
-				i.invoice_status,
-				i.startDate AS startDate,
-				i.endDate AS endDate,
-				i.contactName, i.contactPhone,
-				i.art_director_name, i.content_type, i.prop_receiver, i.art_phone,
-				ip.startDate AS pStartDate, ip.endDate AS pEndDate,
-				i.paid_on, i.transaction_id, i.payment_method,
-				i.name, i.herodirector, i.totalCost,
-				i.finalamount, i.gstpercentage, i.discount, i.gst,
-				i.herodirector AS isWhat, i.name AS isWhatName,
-				i.payableamount, i.vendoraddress, i.gst,
-				i.prop_receiver_name
-				FROM invoice i, products p, 
-				invoice_products ip
-				WHERE 
-				i.invoice_id = '${id}' AND 
-				ip.rstatus = 'R' AND 
-				ip.is_damaged = ${isDamaged} AND
-				i.invoice_id = ip.invoice_id AND				
-				p.code = ip.code
-				`;
+exports.getReturnDetails = (id, isDamaged, isPending) => {
+	let sql = '';
+	if (isPending == 'pending') {
+		sql = `SELECT
+			i.invoice_id,
+			p.id AS product_id,
+			p.name AS product_name,
+			p.category AS product_category,
+			p.model AS product_model,
+			p.createdAt AS created_on,
+			p.updatedAt AS updated_on,
+			p.code AS product_code,
+			p.brand AS product_brand,
+			p.prtype AS product_type,
+			ip.quantity AS quantity,
+			i.type AS invoice_type,
+			ip.days AS rent_days,
+			i.startDate AS rents_start_on,
+			p.subcategory AS product_subcategory,
+			p.image AS product_image,
+			i.to_name, i.to_address, 
+			i.invoice_status,
+			i.startDate AS startDate,
+			i.endDate AS endDate,
+			i.contactName, i.contactPhone,
+			i.art_director_name, i.content_type, i.prop_receiver, i.art_phone,
+			ip.startDate AS pStartDate, ip.endDate AS pEndDate,
+			i.paid_on, i.transaction_id, i.payment_method,
+			i.name, i.herodirector, i.totalCost,
+			i.finalamount, i.gstpercentage, i.discount, i.gst,
+			i.herodirector AS isWhat, i.name AS isWhatName,
+			i.payableamount, i.vendoraddress, i.gst,
+			i.prop_receiver_name
+			FROM invoice i, products p, 
+			invoice_products ip
+			WHERE 
+			i.invoice_id = '${id}' AND 
+			ip.rstatus = 'NR' AND 
+			i.invoice_id = ip.invoice_id AND				
+			p.code = ip.code
+		`;
+	} else {
+		sql = `SELECT
+			i.invoice_id,
+			p.id AS product_id,
+			p.name AS product_name,
+			p.category AS product_category,
+			p.model AS product_model,
+			p.createdAt AS created_on,
+			p.updatedAt AS updated_on,
+			p.code AS product_code,
+			p.brand AS product_brand,
+			p.prtype AS product_type,
+			ip.quantity AS quantity,
+			i.type AS invoice_type,
+			ip.days AS rent_days,
+			i.startDate AS rents_start_on,
+			p.subcategory AS product_subcategory,
+			p.image AS product_image,
+			i.to_name, i.to_address, 
+			i.invoice_status,
+			i.startDate AS startDate,
+			i.endDate AS endDate,
+			i.contactName, i.contactPhone,
+			i.art_director_name, i.content_type, i.prop_receiver, i.art_phone,
+			ip.startDate AS pStartDate, ip.endDate AS pEndDate,
+			i.paid_on, i.transaction_id, i.payment_method,
+			i.name, i.herodirector, i.totalCost,
+			i.finalamount, i.gstpercentage, i.discount, i.gst,
+			i.herodirector AS isWhat, i.name AS isWhatName,
+			i.payableamount, i.vendoraddress, i.gst,
+			i.prop_receiver_name
+			FROM invoice i, products p, 
+			invoice_products ip
+			WHERE 
+			i.invoice_id = '${id}' AND 
+			ip.rstatus = 'R' AND 
+			ip.is_damaged = ${isDamaged} AND
+			i.invoice_id = ip.invoice_id AND				
+			p.code = ip.code
+		`;
+	}
+
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -276,7 +319,7 @@ exports.getDetails = (id) => {
 				AND i.invoice_id = ip.invoice_id
 				AND ist.id = i.invoice_status
 				AND ipt.id = i.invoice_payment
-				AND i.status = 1 AND p.status = 1 AND ip.status = 1`;
+				AND i.status = 1 AND ip.status = 1`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -534,8 +577,33 @@ exports.addReturnProducts = (product, retDate, invoice_id) => {
 }
 
 exports.returnList = async (req) => {
-	let cond = req.body.type === 'damaged' ? 1 : 0;
-	const sql = `SELECT
+
+	let sql = ''
+	if (req.body.type === 'pending') {
+		sql = `SELECT i.invoice_id AS invoice,
+					COUNT(p.code) AS totalProducts,
+					SUM(p.cost) AS totalCost,
+					i.startDate AS CreatedOn,
+					i.to_name, i.to_address, i.to_phone,
+					ist.value AS is_value,
+					ipt.value AS ip_value,
+					i.prop_receiver_name,
+					i.content_type,
+					i.contactname,
+					i.payableamount
+				FROM invoice i,
+					invoice_products p,
+					invoice_status ist,
+					invoice_payments_types ipt
+				WHERE i.invoice_id = p.invoice_id
+				AND i.status = 1 AND p.status = 1
+				AND ist.id = i.invoice_status
+				AND ipt.id = i.invoice_payment
+				AND p.rstatus = 'NR'
+				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, 100 `;
+	} else {
+		let cond = req.body.type === 'damaged' ? 1 : 0;
+		sql = `SELECT
 					rp.invoice_id AS invoice,
 					SUM(rp.quantity) AS totalProducts,
 					i.to_name,
@@ -554,6 +622,8 @@ exports.returnList = async (req) => {
 					rp.id
 				DESC
 				LIMIT 0, 100`;
+	}
+
 	return await db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -666,8 +736,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 
 		// update invoice records. , 
 		const updSql = `UPDATE invoice_products 
-				  SET endDate = '${retDate}', days = ${d}, cost = ${cost}, rstatus = 'R'
-				  is_damaged = ${product.isDamaged}, damage_cost = ${product.damaged_cost}
+				  SET 
+				  	endDate = '${retDate}', 
+					days = ${d}, 
+					cost = ${cost}, rstatus = 'R',
+					is_damaged = ${product.isDamaged}, 
+					damage_cost = ${product.damaged_cost}
 				  WHERE 
 				  	invoice_id = '${invoice_id}' 
 				  AND 
