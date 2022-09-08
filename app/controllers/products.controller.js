@@ -63,7 +63,8 @@ exports.getConsumed = (req, res) => {
 	products
 		.getConsumed(req.body.code, req.body.sdate, req.body.edate)
 		.then((product) => {
-			let consumed = product.length ? product[0].consumed : 0;
+			console.log(product);
+			let consumed = product.length ? product[0].Q : 0;
 			return res.send(consumed.toString()).status(200)
 		})
 		.catch((error) => {

@@ -4,6 +4,7 @@ router.post('/new', invoice.addNewInvoice);
 router.post('/update', invoice.updateInvoice);
 router.post('/draft', invoice.addInvoice);
 router.get('/draft', invoice.getDraftInvoices);
+router.get('/blocked', invoice.getBlockedInvoices);
 router.get('/:id/address', invoice.getAddressOfInvoice);
 router.post('/:id/print', invoice.markInvoiceAsPrint);
 router.post('/:id/address', invoice.addAddress);

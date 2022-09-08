@@ -34,7 +34,7 @@ exports.getAllProducts = (req) => {
 
 exports.getConsumed = (id, sdate, edate) => {
 	try {
-		let sql = `SELECT SUM(ip.quantity) 
+		let sql = `SELECT SUM(ip.quantity) AS Q
 				FROM 
 				invoice_products ip, invoice i 
 				WHERE ip.code = '${id}' AND ip.status = 1 AND i.status = 1 AND

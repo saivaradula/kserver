@@ -69,6 +69,22 @@ exports.getAddressOfInvoice = (req, res) => {
 	});
 };
 
+exports.getBlockedInvoices = (req, res) => {
+	let page = req.body.page;
+	// TODO:: remove this. this is before pagination.
+	page = 10;
+	let end = page > 1 ? page * 10 : 10;
+
+	try {
+		invoice.getBlockedInvoice(end).then((response) => {
+			return res.send(response).status(200);
+		});
+	} catch (e) {
+		console.log(e.getMessage());
+	}
+
+};
+
 exports.getDraftInvoices = (req, res) => {
 	let page = req.body.page;
 	// TODO:: remove this. this is before pagination.
@@ -82,7 +98,6 @@ exports.getDraftInvoices = (req, res) => {
 	} catch (e) {
 		console.log(e.getMessage());
 	}
-
 };
 
 exports.getInvoicePayments = (req, res) => {

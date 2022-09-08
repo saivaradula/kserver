@@ -69,7 +69,7 @@ exports.addNewInvoice = async (req) => {
 		art_director_name, content_type, prop_receiver,
 		startDate, endDate, gst, invoice_payment, totalCost,
 		invoice_status, discount, gstpercentage, finalamount,
-		herodirector, name, vendoraddress, payableamount, prop_receiver_name)
+		herodirector, name, vendoraddress, payableamount, prop_receiver_name, isblocked)
 	VALUES(
 		'${req.body.invoice_id}', '${itype}', '${req.body.toName}', '${req.body.address}', '${req.body.companyPhone}',
 		'${req.body.contactName}', '${req.body.contactPhone}', '${req.body.artPhone}',
@@ -77,7 +77,8 @@ exports.addNewInvoice = async (req) => {
 		'${req.body.startDate}', '${req.body.endDate}', '${req.body.gst}', '${req.body.payment_type}', '${req.body.totalCost}',
 		'${invoiceStatus}', '${req.body.discount}', '${req.body.gstpercentage}', '${req.body.finalamount}',
 		'${req.body.isWhat}', '${req.body.isWhatName}', 
-		'${req.body.vendoraddress}', '${req.body.payableamount}', '${req.body.receiver_name}'
+		'${req.body.vendoraddress}', '${req.body.payableamount}', '${req.body.receiver_name}', 
+		'${req.body.isBlocked}'
 	); `;
 
 	return db.sequelize.query(sql, {
@@ -122,15 +123,39 @@ exports.addAddress = (req) => {
 };
 
 exports.addDraft = (req) => {
-	const sql = `INSERT INTO invoice_products(invoice_id, code, days, cost, startDate, endDate, quantity)
+	const sql = `INSERT INTO invoice_products(invoice_id, code, days, cost, startDate, endDate, quantity, isBlocked)
 	VALUES(
 		'${req.body.invoice_id}', '${req.body.code}', '${req.body.days}', '${req.body.cost}',
-		'${req.body.startDate}', '${req.body.endDate}', '${req.body.quantity}'
+		'${req.body.startDate}', '${req.body.endDate}', '${req.body.quantity}', '${req.body.isBlocked}'
 	); `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
 	});
 };
+
+exports.getBlockedInvoice = (end) => {
+	try {
+		const sql = `SELECT i.invoice_id AS invoice,
+		COUNT(p.code) AS totalProducts,
+		i.createdOn AS CreatedOn,
+		i.startDate AS startDate,
+		i.endDate AS endDate,
+		i.contactName, i.contactPhone,
+		i.name, i.herodirector, i.totalCost,
+		i.finalamount, i.gstpercentage, i.discount,
+		i.payableamount, i.to_name, i.to_phone, i.prop_receiver_name
+				FROM invoice i, invoice_products p
+				WHERE type = 'draft' AND i.isBlocked = 1
+				AND i.invoice_id = p.invoice_id
+				AND i.status = 1 AND p.status = 1
+				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${end} `;
+		return db.sequelize.query(sql, {
+			type: db.sequelize.QueryTypes.SELECT,
+		});
+	} catch (e) {
+		console.log(e.getMessage());
+	}
+}
 
 exports.getDrafts = (end) => {
 	try {
@@ -144,7 +169,7 @@ exports.getDrafts = (end) => {
 		i.finalamount, i.gstpercentage, i.discount,
 		i.payableamount, i.to_name, i.to_phone, i.prop_receiver_name
 				FROM invoice i, invoice_products p
-				WHERE type = 'draft' 
+				WHERE type = 'draft' AND i.isBlocked = 0
 				AND i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, ${end} `;
@@ -154,7 +179,6 @@ exports.getDrafts = (end) => {
 	} catch (e) {
 		console.log(e.getMessage());
 	}
-
 };
 
 exports.markInvoiceAsPrint = (id) => {
