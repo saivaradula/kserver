@@ -39,6 +39,7 @@ exports.getConsumed = (id, sdate, edate) => {
 				invoice_products ip, invoice i 
 				WHERE ip.code = '${id}' AND ip.status = 1 AND i.status = 1 AND
 				i.invoice_id = ip.invoice_id AND ( i.type = 'invoice' OR i.type = 'draft')
+				AND rstatus = 'NR' AND ip.is_damaged = 0
 				AND
 				( ( '${sdate}' BETWEEN ip.startDate AND ip.endDate )
 				OR ( '${edate}' BETWEEN ip.startDate AND ip.endDate ) )
