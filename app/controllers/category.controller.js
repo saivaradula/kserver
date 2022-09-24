@@ -23,3 +23,15 @@ exports.addCategory = (req, res) => {
 		return res.send(response).status(200);
 	});
 };
+
+exports.checkCategory = (req, res) => {
+	category.checkCategory(req).then((response) => {
+		return res.send(response).status(200);
+	})
+}
+
+exports.deleteCategory = (req, res) => {
+	category.deleteCategory(req).then((response) => {
+		return res.send(response).status(200);
+	});
+}

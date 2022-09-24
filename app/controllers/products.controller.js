@@ -5,14 +5,14 @@ exports.create = (req, res) => { };
 exports.getAllProducts = (req, res) => {
 	products.getAllProducts(req).then(async (p) => {
 		let products = {};
-		products.total = await getTotalProducts().then((total) => total);
+		products.total = await getTotalProducts(req).then((total) => total);
 		products.data = p;
 		return res.send({ products }).status(200);
 	});
 };
 
-const getTotalProducts = () =>
-	products.getTotalProducts().then((p) => p.length);
+const getTotalProducts = (params) =>
+	products.getTotalProducts(params).then((p) => p.length);
 
 exports.addProduct = (req, res) => {
 	products.add(req).then((response) => {

@@ -10,6 +10,20 @@ exports.add = (req) => {
 	});
 };
 
+exports.checkCategory = (req) => {
+	const sql = `SELECT name FROM categories WHERE LOWER(name) = '${req.body.name.toLowerCase()}'`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
+exports.deleteCategory = (req) => {
+	const sql = `UPDATE categories SET status = 0 WHERE id = ${req.body.id}`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.DELETE,
+	});
+}
+
 exports.getAllCategories = (req) => {
 	let page = req.params.p;
 	let ofst = 0;
@@ -18,6 +32,9 @@ exports.getAllCategories = (req) => {
 		return category.findAll({
 			offset: ofst,
 			limit: 10,
+			where: {
+				status: 1
+			},
 			order: [['id', 'desc']],
 		});
 	} catch (e) {

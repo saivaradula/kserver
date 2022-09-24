@@ -14,22 +14,100 @@ const escape = s => {
 	return s.replace(/[&"'<>]/g, c => lookup[c]);
 }
 
-exports.getTotalProducts = () => {
-	return products.findAll({
-		where: { status: 1 }
-	});
+exports.getTotalProducts = (req) => {
+	let ss = req.params.s;
+	if (ss === '' || ss === 'undefined' || ss === undefined) {
+		return products.findAll({
+			where: { status: 1 }
+		});
+	} else {
+		return products.findAll({
+			where: {
+				[Op.and]: { status: 1 },
+				[Op.or]: [
+					{
+						name: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						model: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						category: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						code: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						prtype: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						subcategory: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					},
+					{
+						nickname: {
+							[Op.like]: `%${ss.toLowerCase()}%`
+						}
+					}
+				],
+			},
+		});
+	}
+
 };
 
 exports.getAllProducts = (req) => {
 	let page = req.params.p;
+	let ss = req.params.s;
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 10) : 0;
-	return products.findAll({
-		offset: ofst,
-		limit: 10,
-		where: { status: 1 },
-		order: [['id', 'desc']],
-	});
+	console.clear()
+	console.log("ss", ss);
+	if (ss === '' || ss === 'undefined' || ss === undefined) {
+		return products.findAll({
+			offset: ofst,
+			limit: 10,
+			where: { status: 1 },
+			order: [['id', 'desc']],
+		});
+	} else {
+		const sql = `SELECT * 
+					FROM products 
+					WHERE 
+						status = 1 AND 
+						( 
+							LOWER(name) LIKE '%${ss.toLowerCase()}%' 
+							OR
+							LOWER(model) LIKE '%${ss.toLowerCase()}%'
+							OR
+							LOWER(category) LIKE '%${ss.toLowerCase()}%'
+							OR
+							LOWER(code) LIKE '%${ss.toLowerCase()}%'
+							OR
+							LOWER(prtype) LIKE '%${ss.toLowerCase()}%'
+							OR
+							LOWER(subcategory) LIKE '%${ss.toLowerCase()}%' 
+							OR
+							LOWER(nickname) LIKE '%${ss.toLowerCase()}%' 
+						)
+						ORDER BY id desc
+						LIMIT ${ofst}, 10
+					`;
+		return db.sequelize.query(sql, {
+			type: db.sequelize.QueryTypes.SELECT,
+		});
+	}
 };
 
 exports.getConsumed = (id, sdate, edate) => {
