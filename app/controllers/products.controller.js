@@ -59,6 +59,14 @@ exports.getNextCode = async (req, res) => {
 	return res.send(c).status(200)
 }
 
+exports.findProduct = async (req, res) => {
+	products
+		.findProduct(req)
+		.then((product) => {
+			return res.send(product).status(200)
+		})
+}
+
 exports.getConsumed = (req, res) => {
 	products
 		.getConsumed(req.body.code, req.body.sdate, req.body.edate)

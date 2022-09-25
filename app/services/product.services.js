@@ -110,6 +110,26 @@ exports.getAllProducts = (req) => {
 	}
 };
 
+exports.findProduct = (req) => {
+	let sql = `SELECT p.name, p.code, i.invoice_id, i.prop_receiver_name, i.to_name,
+					  i.content_type, i.startDate, i.endDate
+				FROM
+				invoice_products ip, products p, invoice i
+				WHERE
+				i.invoice_id = ip.invoice_id AND
+				ip.rstatus = 'NR' AND
+				ip.code = p.code AND 
+					( 
+						LOWER(p.name) LIKE '%${req.params.s}%' OR
+						LOWER(p.nickname) LIKE '%${req.params.s}%' OR
+						LOWER(p.code) LIKE '%${req.params.s}%'
+					)
+				`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
 exports.getConsumed = (id, sdate, edate) => {
 	try {
 		let sql = `SELECT SUM(ip.quantity) AS Q

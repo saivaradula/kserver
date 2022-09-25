@@ -9,4 +9,5 @@ router.post('/consumed', products.getConsumed);
 router.post('/delete/:id', products.deleteCode)
 router.get('/getNextCode/:code', products.getNextCode)
 
+
 module.exports = router;
