@@ -14,6 +14,7 @@
 	"dependencies": {
 		"cors": "^2.8.5",
 		"express": "^4.17.1",
+		"md5": "^2.3.0",
 		"mysql2": "^2.3.3",
 		"react-scripts": "^5.0.0",
 		"sequelize": "^6.12.0-beta.1"
