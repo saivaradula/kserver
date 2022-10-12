@@ -71,13 +71,13 @@ exports.getAllProducts = (req) => {
 	let page = req.params.p;
 	let ss = req.params.s;
 	let ofst = 0;
-	ofst = page > 1 ? (ofst = (page - 1) * 10) : 0;
+	ofst = page > 1 ? (ofst = (page - 1) * 25) : 0;
 	console.clear()
 	console.log("ss", ss);
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
 		return products.findAll({
 			offset: ofst,
-			limit: 10,
+			limit: 25,
 			where: { status: 1 },
 			order: [['id', 'desc']],
 		});
