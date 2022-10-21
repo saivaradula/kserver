@@ -20,6 +20,7 @@ router.get('/printed', invoice.getPrintedList);
 router.get('/list', invoice.getInvoiceList);
 router.post('/markpaid/:id', invoice.markAsPaid);
 router.get('/paid', invoice.getPaidInvoiceList);
+router.get('/:id/images', invoice.getImagesOfInvoice)
 
 // returns. 
 router.post('/search', invoice.searchInvoices)

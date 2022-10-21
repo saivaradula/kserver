@@ -182,6 +182,13 @@ exports.getInvoiceList = (req, res) => {
 	});
 };
 
+exports.getImagesOfInvoice = (req, res) => {
+	let id = req.params.id;
+	invoice.getImagesOfInvoice(id).then((response) => {
+		return res.send(response).status(200);
+	});
+}
+
 exports.getPaidInvoiceList = (req, res) => {
 	let page = req.body.page;
 	// TODO:: remove this. this is before pagination.
