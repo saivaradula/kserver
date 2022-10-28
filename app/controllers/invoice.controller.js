@@ -106,9 +106,14 @@ exports.getInvoicePayments = (req, res) => {
 	});
 };
 
-exports.getInvoiceDetails = (req, res) => {
+exports.getInvoiceDetails = async (req, res) => {
 	invoice.getDetails(req.params.id).then((response) => {
-		return res.send(response).status(200);
+		response.map(r => {
+			let alpha = r.product_code.match(/[a-zA-Z]+/g);
+			let beta = r.product_code.match(/\d+/g);
+			r.product_hashcode = `${alpha}##${beta}`;
+		})
+		return await es.send(response).status(200);
 	});
 };
 
@@ -185,6 +190,11 @@ exports.getInvoiceList = (req, res) => {
 exports.getImagesOfInvoice = (req, res) => {
 	let id = req.params.id;
 	invoice.getImagesOfInvoice(id).then((response) => {
+		response.map(r => {
+			let alpha = r.code.match(/[a-zA-Z]+/g);
+			let beta = r.code.match(/\d+/g);
+			r.hashcode = `${alpha}##${beta}`;
+		})
 		return res.send(response).status(200);
 	});
 }

@@ -548,7 +548,7 @@ exports.searchInvoices = (ss, to) => {
 }
 
 exports.getImagesOfInvoice = id => {
-	const sql = `SELECT IP.quantity, P.nickname, P.image, I.startDate
+	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate
 				FROM invoice I, products P, invoice_products IP
 				WHERE I.invoice_id = '${id}'
 					AND I.invoice_id = IP.invoice_id
