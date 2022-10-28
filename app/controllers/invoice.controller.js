@@ -113,7 +113,7 @@ exports.getInvoiceDetails = async (req, res) => {
 			let beta = r.product_code.match(/\d+/g);
 			r.product_hashcode = `${alpha}##${beta}`;
 		})
-		return await es.send(response).status(200);
+		return es.send(response).status(200);
 	});
 };
 
