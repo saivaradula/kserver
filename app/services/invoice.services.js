@@ -558,6 +558,18 @@ exports.getImagesOfInvoice = id => {
 	});
 }
 
+exports.getImagesOfInvoiceByType = (id, iType) => {
+	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate
+				FROM invoice I, products P, invoice_products IP
+				WHERE I.invoice_id = '${id}'
+					AND I.invoice_id = IP.invoice_id
+					AND I.isBlocked - 0
+					AND IP.code = P.code`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
 exports.getPaidInvoiceList = (to) => {
 	const sql = `SELECT 
 					i.invoice_id AS invoice,
@@ -635,6 +647,7 @@ exports.returnList = async (req) => {
 				AND ist.id = i.invoice_status
 				AND ipt.id = i.invoice_payment
 				AND p.rstatus = 'NR'
+				AND i.isBlocked = 0
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, 100 `;
 	} else {
 		let cond = req.body.type === 'damaged' ? 1 : 0;
@@ -824,17 +837,15 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	let gstAmt = finalamount * (invResults[0].gstpercentage / 100)
 	payableamount = finalamount + gstAmt;
 
-	const updSql = `UPDATE invoice 
+	const updSql = `UPDATE invoice
 					SET
 						totalCost = '${totalCost}', 
 						finalamount = '${finalamount}', 
 						payableamount = '${payableamount}'
-					WHERE  
+					WHERE
 						id = '${invResults[0].id}'`;
 
 	return await db.sequelize.query(updSql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-
 }
-

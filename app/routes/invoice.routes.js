@@ -21,12 +21,17 @@ router.get('/list', invoice.getInvoiceList);
 router.post('/markpaid/:id', invoice.markAsPaid);
 router.get('/paid', invoice.getPaidInvoiceList);
 router.get('/:id/images', invoice.getImagesOfInvoice)
+router.get('/:id/images/:type', invoice.getImagesOfInvoiceByType)
 
-// returns. 
+// returns.
 router.post('/search', invoice.searchInvoices)
 router.get('/return/:id/items/:pid', invoice.validateReturnProduct)
 router.post('/return', invoice.returnProducts)
 router.post('/return/list', invoice.returnList)
 router.get('/return/:id/:type', invoice.getReturnDetails)
+
+// for printing returns section.
+
+router.get('/received/:id/pending', invoice.getReturnDetails)
 
 module.exports = router;

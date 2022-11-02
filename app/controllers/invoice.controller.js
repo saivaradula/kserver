@@ -199,6 +199,21 @@ exports.getImagesOfInvoice = (req, res) => {
 	});
 }
 
+exports.getImagesOfInvoiceByType = (req, res) => {
+	let id = req.params.id;
+	let iType = req.params.type;
+	invoice.getImagesOfInvoiceByType(id, iType).then((response) => {
+		response.map(r => {
+			let alpha = r.code.match(/[a-zA-Z]+/g);
+			let beta = r.code.match(/\d+/g);
+			r.hashcode = `${alpha}##${beta}`;
+		})
+		return res.send(response).status(200);
+	});
+}
+
+
+
 exports.getPaidInvoiceList = (req, res) => {
 	let page = req.body.page;
 	// TODO:: remove this. this is before pagination.
@@ -265,6 +280,11 @@ exports.getReturnDetails = async (req, res) => {
 
 	let t = req.params.type === 'returned' ? 0 : 1
 	invoice.getReturnDetails(req.params.id, t, req.params.type).then(resp => {
+		resp.map(r => {
+			let alpha = r.product_code.match(/[a-zA-Z]+/g);
+			let beta = r.product_code.match(/\d+/g);
+			r.product_hashcode = `${alpha}##${beta}`;
+		})
 		res.send(resp).status(200)
 	})
 
