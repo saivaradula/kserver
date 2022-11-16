@@ -25,7 +25,7 @@ exports.getName = (req) => {
 }
 
 exports.getProductByCategory = (name) => {
-	const sql = `SELECT count(id) as products FROM Products WHERE LOWER(category) = '${name.toLowerCase()}'`;
+	const sql = `SELECT count(id) as products FROM products WHERE LOWER(category) = '${name.toLowerCase()}'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});

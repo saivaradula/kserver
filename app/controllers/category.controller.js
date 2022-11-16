@@ -32,7 +32,6 @@ exports.checkCategory = (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
 	let r = await category.getName(req);
-	console.log(r)
 	let p = await category.getProductByCategory(r[0].name);
 	if (p[0].products) {
 		return res.send(false).status(200);
