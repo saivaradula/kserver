@@ -30,8 +30,16 @@ exports.checkCategory = (req, res) => {
 	})
 }
 
-exports.deleteCategory = (req, res) => {
-	category.deleteCategory(req).then((response) => {
-		return res.send(response).status(200);
-	});
+exports.deleteCategory = async (req, res) => {
+	let r = await category.getName(req);
+	console.log(r)
+	let p = await category.getProductByCategory(r[0].name);
+	if (p[0].products) {
+		return res.send(false).status(200);
+	} else {
+		await category.deleteCategory(req).then((response) => {
+			return res.send(true).status(200);
+		});
+	}
+
 }

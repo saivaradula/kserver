@@ -17,6 +17,20 @@ exports.checkCategory = (req) => {
 	});
 }
 
+exports.getName = (req) => {
+	const sql = `SELECT name FROM categories WHERE id = '${req.body.id}'`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
+exports.getProductByCategory = (name) => {
+	const sql = `SELECT count(id) as products FROM Products WHERE LOWER(category) = '${name.toLowerCase()}'`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
 exports.deleteCategory = (req) => {
 	const sql = `UPDATE categories SET status = 0 WHERE id = ${req.body.id}`;
 	return db.sequelize.query(sql, {
@@ -44,5 +58,10 @@ exports.getAllCategories = (req) => {
 };
 
 exports.getTotalCategories = () => {
-	return category.findAll();
+	return category.findAll({
+		where: {
+			status: 1
+		},
+	}
+	);
 };

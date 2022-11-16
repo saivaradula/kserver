@@ -548,7 +548,7 @@ exports.searchInvoices = (ss, to) => {
 }
 
 exports.getImagesOfInvoice = id => {
-	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate
+	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate, I.type
 				FROM invoice I, products P, invoice_products IP
 				WHERE I.invoice_id = '${id}'
 					AND I.invoice_id = IP.invoice_id
@@ -559,33 +559,63 @@ exports.getImagesOfInvoice = id => {
 }
 
 exports.getImagesOfInvoiceByType = (id, iType) => {
-	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate
-				FROM invoice I, products P, invoice_products IP
-				WHERE I.invoice_id = '${id}'
-					AND I.invoice_id = IP.invoice_id
-					AND I.isBlocked - 0
+	// -- AND I.isBlocked - 0
+	const where = `I.invoice_id = '${id}'
+					AND I.invoice_id = IP.invoice_id					
 					AND IP.code = P.code`;
+	let select = `SELECT IP.quantity, P.code, P.image, I.startDate, I.type`;
+
+	let sql = `${select} 
+				FROM invoice I, products P, invoice_products IP 
+			   	WHERE ${where}`;
+
+	switch (iType) {
+		case 'returned': {
+			sql = `${select}  
+					FROM invoice I, products P, invoice_products IP					
+					WHERE ${where} AND 
+					IP.rstatus = 'R' AND
+					IP.is_damaged = 0 AND
+					I.invoice_id = IP.invoice_id AND
+					P.code = IP.code`;
+			break;
+		}
+
+		case 'damaged': {
+			sql = `${select}  
+					FROM invoice I, products P, invoice_products IP					
+					WHERE ${where} AND 
+					IP.rstatus = 'R' AND
+					IP.is_damaged = 1 AND
+					I.invoice_id = IP.invoice_id AND
+					P.code = IP.code`;
+			break;
+		}
+		default: { break; }
+	}
+
+
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
 }
 
 exports.getPaidInvoiceList = (to) => {
-	const sql = `SELECT 
-					i.invoice_id AS invoice,
-					COUNT(p.code) AS totalProducts,
-					SUM(p.cost) AS totalCost,
-					i.startDate AS CreatedOn,
+	const sql = `SELECT
+	i.invoice_id AS invoice,
+		COUNT(p.code) AS totalProducts,
+			SUM(p.cost) AS totalCost,
+				i.startDate AS CreatedOn,
 					i.to_name, i.to_address, i.to_phone,
 					ist.value AS is_value,
-					ipt.value AS ip_value,
-					i.prop_receiver_name,
-					i.paid_on, i.transaction_id, i.payment_method, i.payableamount
-				FROM 
+						ipt.value AS ip_value,
+							i.prop_receiver_name,
+							i.paid_on, i.transaction_id, i.payment_method, i.payableamount
+	FROM 
 					invoice i,
-					invoice_products p,
-					invoice_status ist,
-					invoice_payments_types ipt
+		invoice_products p,
+			invoice_status ist,
+				invoice_payments_types ipt
 				WHERE type = 'paid' 
 				AND i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
@@ -603,7 +633,7 @@ exports.validateReturnProduct = (id, pid) => {
 					FROM invoice_products ip 
 					WHERE code = '${pid}'
 					AND invoice_id = '${id}'
-					`;
+		`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -611,11 +641,11 @@ exports.validateReturnProduct = (id, pid) => {
 
 exports.addReturnProducts = (product, retDate, invoice_id) => {
 	const sql = `INSERT INTO return_products
-					( invoice_id, code,quantity, returned_date, is_damaged, damage_cost) 
-					VALUES (
-						'${invoice_id}', '${product.code}', '${product.rquantity}', 
-						'${retDate}', '${product.isDamaged}', '${product.damaged_cost}'
-					)
+		(invoice_id, code, quantity, returned_date, is_damaged, damage_cost)
+	VALUES(
+		'${invoice_id}', '${product.code}', '${product.rquantity}',
+		'${retDate}', '${product.isDamaged}', '${product.damaged_cost}'
+	)
 				`;
 
 	return db.sequelize.query(sql, {
@@ -628,20 +658,20 @@ exports.returnList = async (req) => {
 	let sql = ''
 	if (req.body.type === 'pending') {
 		sql = `SELECT i.invoice_id AS invoice,
-					COUNT(p.code) AS totalProducts,
-					SUM(p.cost) AS totalCost,
-					i.startDate AS CreatedOn,
+		COUNT(p.code) AS totalProducts,
+			SUM(p.cost) AS totalCost,
+				i.startDate AS CreatedOn,
 					i.to_name, i.to_address, i.to_phone,
 					ist.value AS is_value,
-					ipt.value AS ip_value,
-					i.prop_receiver_name,
-					i.content_type,
-					i.contactname,
-					i.payableamount
+						ipt.value AS ip_value,
+							i.prop_receiver_name,
+							i.content_type,
+							i.contactname,
+							i.payableamount
 				FROM invoice i,
-					invoice_products p,
-					invoice_status ist,
-					invoice_payments_types ipt
+		invoice_products p,
+			invoice_status ist,
+				invoice_payments_types ipt
 				WHERE i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
 				AND ist.id = i.invoice_status
@@ -652,23 +682,23 @@ exports.returnList = async (req) => {
 	} else {
 		let cond = req.body.type === 'damaged' ? 1 : 0;
 		sql = `SELECT
-					rp.invoice_id AS invoice,
-					SUM(rp.quantity) AS totalProducts,
-					i.to_name,
-					i.to_address,
-					i.content_type,
-					i.contactname,
-					rp.returned_date
-				FROM
+	rp.invoice_id AS invoice,
+		SUM(rp.quantity) AS totalProducts,
+			i.to_name,
+			i.to_address,
+			i.content_type,
+			i.contactname,
+			rp.returned_date
+	FROM
 					invoice i,
-					return_products rp
-				WHERE 
-					rp.invoice_id = i.invoice_id AND rp.is_damaged = ${cond}
+		return_products rp
+	WHERE
+	rp.invoice_id = i.invoice_id AND rp.is_damaged = ${cond}
 				GROUP BY
-					rp.invoice_id
+	rp.invoice_id
 				ORDER BY
-					rp.id
-				DESC
+	rp.id
+	DESC
 				LIMIT 0, 100`;
 	}
 
@@ -678,8 +708,8 @@ exports.returnList = async (req) => {
 }
 
 exports.updateEndDates = async (p, product, retDate, invoice_id) => {
-	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE 
-			invoice_id = '${invoice_id}'
+	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE
+	invoice_id = '${invoice_id}'
 			AND code = '${product.code}'`;
 
 	const results = await db.sequelize.query(sql, {
@@ -735,12 +765,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			}
 		}
 
-		const insSql = `INSERT INTO invoice_products 
-				  ( endDate, days, cost, invoice_id, code, startDate, quantity, rstatus, is_damaged, damage_cost )
-				  VALUES (
-					'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
-					'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost}
-				  )`
+		const insSql = `INSERT INTO invoice_products
+		(endDate, days, cost, invoice_id, code, startDate, quantity, rstatus, is_damaged, damage_cost)
+	VALUES(
+		'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
+		'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost}
+	)`
 
 		await db.sequelize.query(insSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -768,12 +798,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			}
 		}
 
-		const updSql = `UPDATE invoice_products 
-				  SET 
-				  	quantity = ${quantity}, 
-				  	cost = ${cost}
-				  WHERE 
-				  	id = '${results[0].id}'`
+		const updSql = `UPDATE invoice_products
+	SET
+	quantity = ${quantity},
+	cost = ${cost}
+	WHERE
+	id = '${results[0].id}'`
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -783,17 +813,17 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	else {
 
 		// update invoice records. , 
-		const updSql = `UPDATE invoice_products 
-				  SET 
-				  	endDate = '${retDate}', 
-					days = ${d}, 
-					cost = ${cost}, rstatus = 'R',
-					is_damaged = ${product.isDamaged}, 
-					damage_cost = ${product.damaged_cost}
-				  WHERE 
-				  	invoice_id = '${invoice_id}' 
-				  AND 
-				  	code = '${product.code}'`
+		const updSql = `UPDATE invoice_products
+	SET
+	endDate = '${retDate}',
+		days = ${d},
+	cost = ${cost}, rstatus = 'R',
+		is_damaged = ${product.isDamaged},
+	damage_cost = ${product.damaged_cost}
+	WHERE
+	invoice_id = '${invoice_id}'
+	AND
+	code = '${product.code}'`
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -816,14 +846,14 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 
 	// get total cost. ( sum of all products in invoice)
 
-	const sumSql = `SELECT 
-						SUM(cost) AS C 
-					FROM 
-						invoice_products 
-					WHERE				
-						invoice_id = '${invoice_id}'
-					GROUP BY 
-						invoice_id`;
+	const sumSql = `SELECT
+	SUM(cost) AS C
+	FROM
+	invoice_products
+	WHERE
+	invoice_id = '${invoice_id}'
+					GROUP BY
+	invoice_id`;
 
 	const sumResults = await db.sequelize.query(sumSql, {
 		type: db.sequelize.QueryTypes.SELECT,
@@ -838,12 +868,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	payableamount = finalamount + gstAmt;
 
 	const updSql = `UPDATE invoice
-					SET
-						totalCost = '${totalCost}', 
-						finalamount = '${finalamount}', 
-						payableamount = '${payableamount}'
-					WHERE
-						id = '${invResults[0].id}'`;
+	SET
+	totalCost = '${totalCost}',
+		finalamount = '${finalamount}',
+		payableamount = '${payableamount}'
+	WHERE
+	id = '${invResults[0].id}'`;
 
 	return await db.sequelize.query(updSql, {
 		type: db.sequelize.QueryTypes.SELECT,
