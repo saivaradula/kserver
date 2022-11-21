@@ -4,6 +4,8 @@ const { getPercentagesForNew, getPercentagesForOld } = require('./daycounter')
 const invoice = db.invoice;
 const Op = db.Sequelize.Op;
 
+const productService = require('../services/product.services');
+
 const PRTYPES = {
 	NEW: 'new',
 	OLD: 'old',
@@ -639,18 +641,94 @@ exports.validateReturnProduct = (id, pid) => {
 	});
 }
 
-exports.addReturnProducts = (product, retDate, invoice_id) => {
+exports.addReturnProducts = async (product, retDate, invoice_id) => {
+	console.log(product);
 	const sql = `INSERT INTO return_products
-		(invoice_id, code, quantity, returned_date, is_damaged, damage_cost)
+		(invoice_id, code, quantity, returned_date, is_damaged, damage_cost, damaged_type)
 	VALUES(
 		'${invoice_id}', '${product.code}', '${product.rquantity}',
-		'${retDate}', '${product.isDamaged}', '${product.damaged_cost}'
-	)
-				`;
+		'${retDate}', '${product.isDamaged}', '${product.damaged_cost}',
+		'${product.damaged_type}'
+	)`;
 
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
 	});
+
+}
+
+exports.updateProducts = async (product, recievedData) => {
+	let q = product.quantity - recievedData.rquantity;
+
+	if (recievedData.isDamaged) {
+
+		let s = `UPDATE products SET quantity = ${q} WHERE id = ${product.id}`;
+		db.sequelize.query(s, {
+			type: db.sequelize.QueryTypes.UPDATE,
+		});
+
+		if (recievedData.damaged_type === 'partial') {
+
+			let p = await productService.getProductDetails(`${product.code}-D`);
+
+			if (p.length > 0) {
+				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
+				let s = `UPDATE products 
+					SET quantity = ${quantity} 
+					WHERE id = '${p[0].id}'`;
+				db.sequelize.query(s, {
+					type: db.sequelize.QueryTypes.UPDATE,
+				});
+			} else {
+				let sql = `INSERT INTO products (name, code, image, category, 
+					brand, cost, price, quantity, 
+					alert, model, subcategory, unit, prtype, nickname, godawan)
+					VALUES ('${product.name}', '${product.code}-D', 
+					'${product.image}', '${product.category}',
+					'${product.brand}', '${product.cost}', '${product.price}', 
+					'${recievedData.rquantity}', 
+					'${product.alert}', '${product.model}', '${product.subcategory}', 
+					'${product.unit}', 'damage', '${product.nickname}', '${product.godawan}');
+				`;
+
+				db.sequelize.query(sql, {
+					type: db.sequelize.QueryTypes.UPDATE,
+				});
+			}
+
+
+		}
+
+		if (recievedData.damaged_type === 'full') {
+
+			let p = await productService.getProductDetails(`${product.code}-FULL_DAMAGED`);
+
+			if (p.length > 0) {
+				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
+				let s = `UPDATE products 
+					SET quantity = ${quantity} 
+					WHERE id = '${p[0].id}'`;
+				db.sequelize.query(s, {
+					type: db.sequelize.QueryTypes.UPDATE,
+				});
+			} else {
+				let sql = `INSERT INTO products (name, code, image, category, 
+					brand, cost, price, quantity, 
+					alert, model, subcategory, unit, prtype, nickname, godawan, status)
+					VALUES ('${product.name}', '${product.code}-FULL_DAMAGED', 
+					'${product.image}', '${product.category}',
+					'${product.brand}', '${product.cost}', '${product.price}', 
+					'${recievedData.rquantity}', 
+					'${product.alert}', '${product.model}', '${product.subcategory}', 
+					'${product.unit}', 'damage', '${product.nickname}', '${product.godawan}', 0);
+				`;
+
+				db.sequelize.query(sql, {
+					type: db.sequelize.QueryTypes.UPDATE,
+				});
+			}
+		}
+	}
 }
 
 exports.returnList = async (req) => {
@@ -766,10 +844,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		}
 
 		const insSql = `INSERT INTO invoice_products
-		(endDate, days, cost, invoice_id, code, startDate, quantity, rstatus, is_damaged, damage_cost)
+		(endDate, days, cost, invoice_id, code, 
+			startDate, quantity, rstatus, is_damaged, damage_cost, damaged_type)
 	VALUES(
 		'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
-		'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost}
+		'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost},
+		'${product.damaged_type}'
 	)`
 
 		await db.sequelize.query(insSql, {
@@ -799,11 +879,11 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		}
 
 		const updSql = `UPDATE invoice_products
-	SET
-	quantity = ${quantity},
-	cost = ${cost}
-	WHERE
-	id = '${results[0].id}'`
+							SET
+							quantity = ${quantity},
+							cost = ${cost}
+							WHERE
+							id = '${results[0].id}'`
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -819,7 +899,8 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		days = ${d},
 	cost = ${cost}, rstatus = 'R',
 		is_damaged = ${product.isDamaged},
-	damage_cost = ${product.damaged_cost}
+	damage_cost = ${product.damaged_cost},
+	damage_type = ${product.damaged_type}
 	WHERE
 	invoice_id = '${invoice_id}'
 	AND
