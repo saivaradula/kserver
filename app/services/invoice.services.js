@@ -59,6 +59,7 @@ exports.findInvoiceById = invid => {
 exports.addNewInvoice = async (req) => {
 	let invoiceStatus = 1;
 	let itype = 'draft';
+
 	if (req.body.payment_type === 4) {
 		invoiceStatus = 2;
 		itype = 'invoice'; // As advanced is paid.
@@ -249,7 +250,8 @@ exports.getReturnDetails = (id, isDamaged, isPending) => {
 			i.finalamount, i.gstpercentage, i.discount, i.gst,
 			i.herodirector AS isWhat, i.name AS isWhatName,
 			i.payableamount, i.vendoraddress, i.gst,
-			i.prop_receiver_name
+			i.prop_receiver_name, 
+			ip.is_damaged, ip.damaged_type, ip.damage_cost
 			FROM invoice i, products p, 
 			invoice_products ip
 			WHERE 
@@ -288,7 +290,9 @@ exports.getReturnDetails = (id, isDamaged, isPending) => {
 			i.finalamount, i.gstpercentage, i.discount, i.gst,
 			i.herodirector AS isWhat, i.name AS isWhatName,
 			i.payableamount, i.vendoraddress, i.gst,
-			i.prop_receiver_name
+			i.prop_receiver_name, 
+			ip.is_damaged, ip.damaged_type, ip.damage_cost
+
 			FROM invoice i, products p, 
 			invoice_products ip
 			WHERE 
@@ -661,8 +665,7 @@ exports.updateProducts = async (product, recievedData) => {
 	let q = product.quantity - recievedData.rquantity;
 
 	if (recievedData.isDamaged) {
-
-		let s = `UPDATE products SET quantity = ${q} WHERE id = ${product.id}`;
+		let s = `UPDATE products SET  quantity = ${q} WHERE id = ${product.id}`;
 		db.sequelize.query(s, {
 			type: db.sequelize.QueryTypes.UPDATE,
 		});
@@ -670,55 +673,55 @@ exports.updateProducts = async (product, recievedData) => {
 		if (recievedData.damaged_type === 'partial') {
 
 			let p = await productService.getProductDetails(`${product.code}-D`);
-
 			if (p.length > 0) {
 				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
 				let s = `UPDATE products 
-					SET quantity = ${quantity} 
+					SET 
+					is_damaged = 1,
+					is_fully_damaged = 0,
+					quantity = ${quantity} 
 					WHERE id = '${p[0].id}'`;
 				db.sequelize.query(s, {
 					type: db.sequelize.QueryTypes.UPDATE,
 				});
 			} else {
 				let sql = `INSERT INTO products (name, code, image, category, 
-					brand, cost, price, quantity, 
+					brand, cost, price, quantity, is_damaged, is_fully_damaged,
 					alert, model, subcategory, unit, prtype, nickname, godawan)
 					VALUES ('${product.name}', '${product.code}-D', 
 					'${product.image}', '${product.category}',
 					'${product.brand}', '${product.cost}', '${product.price}', 
-					'${recievedData.rquantity}', 
+					'${recievedData.rquantity}', 1, 0,
 					'${product.alert}', '${product.model}', '${product.subcategory}', 
 					'${product.unit}', 'damage', '${product.nickname}', '${product.godawan}');
 				`;
-
 				db.sequelize.query(sql, {
 					type: db.sequelize.QueryTypes.UPDATE,
 				});
 			}
-
-
 		}
 
 		if (recievedData.damaged_type === 'full') {
-
 			let p = await productService.getProductDetails(`${product.code}-FULL_DAMAGED`);
-
 			if (p.length > 0) {
 				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
 				let s = `UPDATE products 
-					SET quantity = ${quantity} 
+					SET 
+					is_damaged = 1,
+					is_fully_damaged = 1,
+					quantity = ${quantity} 
 					WHERE id = '${p[0].id}'`;
 				db.sequelize.query(s, {
 					type: db.sequelize.QueryTypes.UPDATE,
 				});
 			} else {
 				let sql = `INSERT INTO products (name, code, image, category, 
-					brand, cost, price, quantity, 
+					brand, cost, price, quantity, is_damaged, is_fully_damaged,
 					alert, model, subcategory, unit, prtype, nickname, godawan, status)
 					VALUES ('${product.name}', '${product.code}-FULL_DAMAGED', 
 					'${product.image}', '${product.category}',
 					'${product.brand}', '${product.cost}', '${product.price}', 
-					'${recievedData.rquantity}', 
+					'${recievedData.rquantity}', 1, 1,
 					'${product.alert}', '${product.model}', '${product.subcategory}', 
 					'${product.unit}', 'damage', '${product.nickname}', '${product.godawan}', 0);
 				`;
@@ -788,8 +791,7 @@ exports.returnList = async (req) => {
 
 exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE
-	invoice_id = '${invoice_id}'
-			AND code = '${product.code}'`;
+	invoice_id = '${invoice_id}' AND rstatus = 'NR' AND code = '${product.code}'`;
 
 	const results = await db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
