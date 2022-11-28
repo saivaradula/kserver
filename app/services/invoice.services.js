@@ -8,7 +8,7 @@ const productService = require('../services/product.services');
 
 const PRTYPES = {
 	NEW: 'new',
-	OLD: 'old',
+	OLD: 'used',
 	ANTIQUE: 'antique',
 	DAMAGE: 'damage'
 }
@@ -756,6 +756,7 @@ exports.returnList = async (req) => {
 				AND ipt.id = i.invoice_payment
 				AND p.rstatus = 'NR'
 				AND i.isBlocked = 0
+				AND i.type != 'draft'
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, 100 `;
 	} else {
 		let cond = req.body.type === 'damaged' ? 1 : 0;

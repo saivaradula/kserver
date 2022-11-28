@@ -242,6 +242,7 @@ exports.validateReturnProduct = (req, res) => {
 		console.log(response);
 		if (response.length) {
 			product.getProductDetails(pid).then(resp => {
+				console.log(resp)
 				resp[0].quantity = response[0].quantity
 				return res.send(resp).status(200);
 			})

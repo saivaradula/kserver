@@ -18,12 +18,12 @@ exports.getTotalProducts = (req) => {
 	let ss = req.params.s;
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
 		return products.findAll({
-			where: { status: 1 }
+			where: { status: req.params.a }
 		});
 	} else {
 		return products.findAll({
 			where: {
-				[Op.and]: { status: 1 },
+				[Op.and]: { status: req.params.a },
 				[Op.or]: [
 					{
 						name: {
@@ -70,22 +70,24 @@ exports.getTotalProducts = (req) => {
 exports.getAllProducts = (req) => {
 	let page = req.params.p;
 	let ss = req.params.s;
+	let active = req.params.a;
+	// active = active ? 1 : 0
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 25) : 0;
 	console.clear()
-	console.log("ss", ss);
+	console.log("ss", req.params, active);
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
 		return products.findAll({
 			offset: ofst,
 			limit: 25,
-			where: { status: 1 },
+			where: { status: active },
 			order: [['id', 'desc']],
 		});
 	} else {
 		const sql = `SELECT * 
 					FROM products 
 					WHERE 
-						status = 1 AND 
+						status = ${active} AND 
 						( 
 							LOWER(name) LIKE '%${ss.toLowerCase()}%' 
 							OR
