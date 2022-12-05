@@ -121,6 +121,7 @@ exports.findProduct = (req) => {
 				i.invoice_id = ip.invoice_id AND
 				ip.rstatus = 'NR' AND
 				i.isBlocked = 0 AND
+				i.type != 'draft' AND
 				ip.code = p.code AND 
 					( 
 						LOWER(p.name) LIKE '%${req.params.s}%' OR

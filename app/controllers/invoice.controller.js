@@ -259,21 +259,35 @@ exports.returnProducts = async (req, res) => {
 	let retDate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(0)
 	d = new Date(retDate);
 
-	req.body.formValues.map(async f => {
-		f.damaged_cost = f.damaged_cost !== undefined ? f.damaged_cost : 0;
-		f.isDamaged = f.isDamaged ? 1 : 0;
-		f.damaged_type = f.damaged_type !== undefined ? f.damaged_type : '';
-		// adding to returning products
-		await invoice.addReturnProducts(f, retDate, req.body.invoice_id)
+	console.log(req.body.formValues)
+	let f = req.body.formValues;
+	f.damaged_cost = f.damaged_cost !== undefined ? f.damaged_cost : 0;
+	f.isDamaged = f.isDamaged ? 1 : 0;
+	f.damaged_type = f.isDamaged == 1 ? f.damaged_type : 'NO_DAMAGE';
 
-		// calculate enddates and update final amount.
-		let p = await product.getProductDetails(f.code);
-		await invoice.updateProducts(p[0], f);
-		// setTimeout(async () => {
-		await invoice.updateEndDates(p, f, retDate, req.body.invoice_id);
-		// }, 1000)
-	})
+	await invoice.addReturnProducts(f, retDate, req.body.invoice_id);
+	let p = await product.getProductDetails(f.code);
+	await invoice.updateProducts(p[0], f);
+	f.original_code = f.code;
+	f.code = f.isDamaged == 1 ? f.damaged_type == 'partial' ? f.code + '-D' : f.code + '-FULL_DAMAGED' : f.code;
+	await invoice.updateEndDates(p, f, retDate, req.body.invoice_id);
 	return await res.send(true).status(200);
+
+	// req.body.formValues.map(async f => {
+	// 	f.damaged_cost = f.damaged_cost !== undefined ? f.damaged_cost : 0;
+	// 	f.isDamaged = f.isDamaged ? 1 : 0;
+	// 	f.damaged_type = f.damaged_type !== undefined ? f.damaged_type : '';
+	// 	// adding to returning products
+	// 	await invoice.addReturnProducts(f, retDate, req.body.invoice_id)
+
+	// 	// calculate enddates and update final amount.
+	// 	let p = await product.getProductDetails(f.code);
+	// 	await invoice.updateProducts(p[0], f);
+	// 	// setTimeout(async () => {
+	// 	await invoice.updateEndDates(p, f, retDate, req.body.invoice_id);
+	// 	// }, 1000)
+	// })
+	// return await res.send(true).status(200);
 }
 
 exports.returnList = async (req, res) => {
@@ -283,7 +297,6 @@ exports.returnList = async (req, res) => {
 }
 
 exports.getReturnDetails = async (req, res) => {
-
 	let t = req.params.type === 'returned' ? 0 : 1
 	invoice.getReturnDetails(req.params.id, t, req.params.type).then(resp => {
 		resp.map(r => {
@@ -293,6 +306,4 @@ exports.getReturnDetails = async (req, res) => {
 		})
 		res.send(resp).status(200)
 	})
-
-
 }
