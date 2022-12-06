@@ -796,8 +796,6 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
 
-	console.log("rESULUTS", results[0].quantity);
-
 	let t = new Date(retDate)
 	let cost = 0;
 	let d = t.getTime() - results[0].startDate.getTime();
@@ -847,14 +845,37 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			}
 		}
 
-		const insSql = `INSERT INTO invoice_products
-		(endDate, days, cost, invoice_id, code, 
-			startDate, quantity, rstatus, is_damaged, damage_cost, damaged_type)
-		VALUES(
-			'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
-			'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost},
-			'${product.damaged_type}'
-		)`
+		const chk = `SELECT id, quantity FROM invoice_products 
+					 WHERE
+					 endDate = '${retDate}'
+						AND is_damaged = ${product.isDamaged}
+						AND damaged_type = '${product.damaged_type}'
+						AND invoice_id = '${invoice_id}'
+						AND code = '${product.code}'
+						AND status = 1
+					 `;
+		const chkR = await db.sequelize.query(chk, {
+			type: db.sequelize.QueryTypes.SELECT,
+		});
+
+		console.log(chkR);
+
+		let insSql;
+		if (chkR.length) {
+			let quan = Number(chkR[0].quantity) + Number(product.rquantity)
+			insSql = `UPDATE invoice_products SET
+			 quantity = ${quan}
+			WHERE id = ${chkR[0].id}`
+		} else {
+			insSql = `INSERT INTO invoice_products
+			(endDate, days, cost, invoice_id, code,
+				startDate, quantity, rstatus, is_damaged, damage_cost, damaged_type)
+			VALUES(
+				'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
+				'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost},
+				'${product.damaged_type}'
+			)`
+		}
 
 		await db.sequelize.query(insSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -883,13 +904,13 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		}
 
 		const updSql = `UPDATE invoice_products
-							SET
-							quantity = ${quantity},
-							cost = ${cost}
-							WHERE
-							rstatus = 'NR' AND
-							code = '${product.original_code}'`
-		console.log(updSql)
+			SET
+			quantity = ${quantity},
+			cost = ${cost}
+			WHERE
+			rstatus = 'NR' AND
+			code = '${product.original_code}'`
+
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
 		});
@@ -900,17 +921,17 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		// update invoice records. , 
 		const updSql = `UPDATE invoice_products
 			SET
-				endDate = '${retDate}',
+			endDate = '${retDate}',
 				days = ${d},
-				cost = ${cost}, rstatus = 'R',
+			cost = ${cost}, rstatus = 'R',
 				is_damaged = ${product.isDamaged},
-				damage_cost = ${product.damaged_cost},
-				damaged_type = '${product.damaged_type}',
+			damage_cost = ${product.damaged_cost},
+			damaged_type = '${product.damaged_type}',
 				code = '${product.code}'
 			WHERE
-				invoice_id = '${invoice_id}' AND
-				rstatus = 'NR' AND
-				code = '${product.original_code}'`
+			invoice_id = '${invoice_id}' AND
+			rstatus = 'NR' AND
+			code = '${product.original_code}'`
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
@@ -934,13 +955,13 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	// get total cost. ( sum of all products in invoice)
 
 	const sumSql = `SELECT
-	SUM(cost) AS C
-	FROM
-	invoice_products
-	WHERE
-	invoice_id = '${invoice_id}'
+			SUM(cost) AS C
+			FROM
+			invoice_products
+			WHERE
+			invoice_id = '${invoice_id}'
 					GROUP BY
-	invoice_id`;
+			invoice_id`;
 
 	const sumResults = await db.sequelize.query(sumSql, {
 		type: db.sequelize.QueryTypes.SELECT,
@@ -955,12 +976,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	payableamount = finalamount + gstAmt;
 
 	const updSql = `UPDATE invoice
-	SET
-	totalCost = '${totalCost}',
-		finalamount = '${finalamount}',
-		payableamount = '${payableamount}'
-	WHERE
-	id = '${invResults[0].id}'`;
+			SET
+			totalCost = '${totalCost}',
+				finalamount = '${finalamount}',
+				payableamount = '${payableamount}'
+			WHERE
+			id = '${invResults[0].id}'`;
 
 	return await db.sequelize.query(updSql, {
 		type: db.sequelize.QueryTypes.UPDATE,

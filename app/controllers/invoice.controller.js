@@ -259,7 +259,6 @@ exports.returnProducts = async (req, res) => {
 	let retDate = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(0)
 	d = new Date(retDate);
 
-	console.log(req.body.formValues)
 	let f = req.body.formValues;
 	f.damaged_cost = f.damaged_cost !== undefined ? f.damaged_cost : 0;
 	f.isDamaged = f.isDamaged ? 1 : 0;
