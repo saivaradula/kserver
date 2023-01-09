@@ -576,6 +576,16 @@ exports.getImagesOfInvoiceByType = (id, iType) => {
 			   	WHERE ${where}`;
 
 	switch (iType) {
+		case 'pending': {
+			sql = `${select}  
+					FROM invoice I, products P, invoice_products IP					
+					WHERE ${where} AND 
+					IP.rstatus = 'NR' AND
+					IP.is_damaged = 0 AND
+					I.invoice_id = IP.invoice_id AND
+					P.code = IP.code`;
+			break;
+		}
 		case 'returned': {
 			sql = `${select}  
 					FROM invoice I, products P, invoice_products IP					

@@ -16,14 +16,27 @@ const escape = s => {
 
 exports.getTotalProducts = (req) => {
 	let ss = req.params.s;
+	let archieved = req.params.archieve;
+	let damaged = req.params.damaged;
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
-		return products.findAll({
-			where: { status: req.params.a }
-		});
+		if (damaged > 0) {
+			return products.findAll({
+				where: { is_fully_damaged: damaged },
+			});
+		}
+		if (archieved > 0) {
+			return products.findAll({
+				where: { status: !archieved, is_fully_damaged: '0' },
+			});
+		} else {
+			return products.findAll({
+				where: { status: '1' },
+			});
+		}
 	} else {
 		return products.findAll({
 			where: {
-				[Op.and]: { status: req.params.a },
+				[Op.and]: { status: req.params.archieved },
 				[Op.or]: [
 					{
 						name: {
@@ -70,19 +83,39 @@ exports.getTotalProducts = (req) => {
 exports.getAllProducts = (req) => {
 	let page = req.params.p;
 	let ss = req.params.s;
-	let active = req.params.a;
+	let archieved = req.params.archieve;
+	let damaged = req.params.damaged;
 	// active = active ? 1 : 0
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 25) : 0;
 	console.clear()
-	console.log("ss", req.params, active);
+	console.log("ss", req.params);
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
-		return products.findAll({
-			offset: ofst,
-			limit: 25,
-			where: { status: active },
-			order: [['id', 'desc']],
-		});
+		if (damaged > 0) {
+			console.log('ss')
+			return products.findAll({
+				offset: ofst,
+				limit: 25,
+				where: { is_fully_damaged: damaged },
+				order: [['id', 'desc']],
+			});
+		}
+		if (archieved > 0) {
+			return products.findAll({
+				offset: ofst,
+				limit: 25,
+				where: { status: !archieved, is_fully_damaged: '0' },
+				order: [['id', 'desc']],
+			});
+		} else {
+			return products.findAll({
+				offset: ofst,
+				limit: 25,
+				where: { status: '1' },
+				order: [['id', 'desc']],
+			});
+		}
+
 	} else {
 		const sql = `SELECT * 
 					FROM products 
@@ -114,14 +147,13 @@ exports.getAllProducts = (req) => {
 
 exports.findProduct = (req) => {
 	let sql = `SELECT p.name, p.code, i.invoice_id, i.prop_receiver_name, i.to_name,
-					  i.content_type, i.startDate, i.endDate
+					  i.content_type, i.startDate, i.endDate, ip.rstatus, i.isBlocked
 				FROM
 				invoice_products ip, products p, invoice i
 				WHERE
+				i.status = 1 AND
 				i.invoice_id = ip.invoice_id AND
-				ip.rstatus = 'NR' AND
-				i.isBlocked = 0 AND
-				i.type != 'draft' AND
+				ip.status = 1 AND
 				ip.code = p.code AND 
 					( 
 						LOWER(p.name) LIKE '%${req.params.s}%' OR
