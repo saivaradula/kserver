@@ -5,8 +5,8 @@ const db = require('./app/models');
 const routes = require('./app/routes');
 
 var corsOptions = {
-	origin: 'http://159.223.0.47',
-	// origin: 'http://localhost:3000',
+	// origin: 'http://159.223.0.47',
+	origin: 'http://localhost:3002',
 };
 
 app.use(cors(corsOptions));
@@ -19,12 +19,7 @@ app.use(express.urlencoded({ limit: '50mb' }));
 // 	console.log('Drop and re-sync db.');
 // });
 
-app.get('/moralis', (req, res) => {
-	console.log("Request raised from Moralis Server...")
-});
-
 app.get('/', (req, res) => {
-	console.log('test')
 	res.json({ message: "Welcome to Kadali's store backend application." });
 });
 

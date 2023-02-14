@@ -85,7 +85,7 @@ exports.getAllProducts = (req) => {
 	let ss = req.params.s;
 	let archieved = req.params.archieve;
 	let damaged = req.params.damaged;
-	// active = active ? 1 : 0
+	// active = archieved ? 1 : 0
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 25) : 0;
 	console.clear()
@@ -120,7 +120,7 @@ exports.getAllProducts = (req) => {
 		const sql = `SELECT * 
 					FROM products 
 					WHERE 
-						status = ${active} AND 
+						status = ${!archieved} AND 
 						( 
 							LOWER(name) LIKE '%${ss.toLowerCase()}%' 
 							OR

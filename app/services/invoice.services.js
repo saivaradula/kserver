@@ -671,6 +671,7 @@ exports.addReturnProducts = async (product, retDate, invoice_id) => {
 }
 
 exports.updateProducts = async (product, recievedData) => {
+	// console.log(product)
 	let q = product.quantity - recievedData.rquantity;
 
 	if (recievedData.isDamaged) {
@@ -743,8 +744,25 @@ exports.updateProducts = async (product, recievedData) => {
 	}
 }
 
-exports.returnList = async (req) => {
+exports.archieve = async req => {
+	console.log(req.body)
 
+	let field = (req.body.iType === 'pending') ?
+		`is_pending_archieved = ${req.body.archieve}`
+		:
+		(req.body.iType === 'returned') ?
+			`is_received_archieved = ${req.body.archieve}`
+			: `is_damaged_archieved = ${req.body.archieve}`
+
+
+	let sql = `UPDATE invoice SET ${field} WHERE invoice_id = '${req.body.invoice}' `;
+
+	db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.UPDATE,
+	});
+}
+
+exports.returnList = async (req) => {
 	let sql = ''
 	if (req.body.type === 'pending') {
 		sql = `SELECT i.invoice_id AS invoice,
@@ -758,9 +776,7 @@ exports.returnList = async (req) => {
 							i.content_type,
 							i.contactname,
 							i.payableamount
-				FROM invoice i,
-		invoice_products p,
-			invoice_status ist,
+				FROM invoice i, invoice_products p, invoice_status ist,
 				invoice_payments_types ipt
 				WHERE i.invoice_id = p.invoice_id
 				AND i.status = 1 AND p.status = 1
@@ -769,27 +785,28 @@ exports.returnList = async (req) => {
 				AND p.rstatus = 'NR'
 				AND i.isBlocked = 0
 				AND i.type != 'draft'
+				AND i.is_pending_archieved = ${req.body?.is_archieved ?? 0}
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, 100 `;
 	} else {
 		let cond = req.body.type === 'damaged' ? 1 : 0;
+		let r = req.body.type === 'damaged' ? ' i.is_damaged_archieved' : ' i.is_received_archieved'
 		sql = `SELECT
-	rp.invoice_id AS invoice,
-		SUM(rp.quantity) AS totalProducts,
-			i.to_name,
-			i.to_address,
-			i.content_type,
-			i.contactname,
-			rp.returned_date
-	FROM
+					rp.invoice_id AS invoice,
+					SUM(rp.quantity) AS totalProducts,
+						i.to_name,
+						i.to_address,
+						i.content_type,
+						i.contactname,
+						rp.returned_date
+				FROM
 					invoice i,
-		return_products rp
-	WHERE
-	rp.invoice_id = i.invoice_id AND rp.is_damaged = ${cond}
-				GROUP BY
-	rp.invoice_id
-				ORDER BY
-	rp.id
-	DESC
+				return_products rp
+				WHERE
+				rp.invoice_id = i.invoice_id 
+				AND ${r} = ${req.body?.is_archieved ?? 0}
+				AND rp.is_damaged = ${cond} 
+				GROUP BY rp.invoice_id 
+				ORDER BY rp.id DESC
 				LIMIT 0, 100`;
 	}
 
@@ -802,6 +819,7 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE
 	invoice_id = '${invoice_id}' AND rstatus = 'NR' AND code = '${product.original_code}'`;
 
+	console.log(sql)
 	const results = await db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -810,6 +828,10 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	let cost = 0;
 	let d = t.getTime() - results[0].startDate.getTime();
 	d = Math.ceil(d / (1000 * 3600 * 24)) + 1
+
+	// console.log("Days - ", d)
+	// console.log(results);
+	// // console.log(p)
 
 	switch (p[0].prtype) {
 		case PRTYPES.ANTIQUE:
@@ -868,7 +890,6 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			type: db.sequelize.QueryTypes.SELECT,
 		});
 
-		console.log(chkR);
 
 		let insSql;
 		if (chkR.length) {
