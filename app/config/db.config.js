@@ -1,10 +1,10 @@
 module.exports = {
-	HOST: 'kadalis-do-user-4737240-0.b.db.ondigitalocean.com',
-	USER: 'doadmin',
-	PASSWORD: 'AVNS_Vi9cDQ_Jl7UhMf2',
-	DB: 'kadalis',
+	HOST: 'rcdbinstance.c418ddmyspkz.us-east-1.rds.amazonaws.com',
+	USER: 'admin',
+	PASSWORD: 'RightCh0ice',
+	DB: 'rcdatabase',
 	dialect: 'mysql',
-	PORT: 25060,
+	PORT: 3306,
 	pool: {
 		max: 5,
 		min: 0,
