@@ -14,7 +14,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 
 
-const dbConfig = require('../config/db.config.js');
+const dbConfig = require('./app/config/db.config.js');
 const Sequelize = require('sequelize');
 
 
