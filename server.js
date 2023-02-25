@@ -5,7 +5,7 @@ const db = require('./app/models');
 const routes = require('./app/routes');
 
 var corsOptions = {
-	// origin: process.env.FEURL
+	// origin: "http://localhost:3002"
 	origin: 'http://ec2-3-234-250-196.compute-1.amazonaws.com',
 };
 
@@ -13,15 +13,38 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
 
-// db.sequelize.sync();
-// Below is for development only
-// db.sequelize.sync({ force: true }).then(() => {
-// 	console.log('Drop and re-sync db.');
-// });
+
+const dbConfig = require('../config/db.config.js');
+const Sequelize = require('sequelize');
+
 
 app.get('/', (req, res) => {
 	res.json({ message: "Welcome to Kadali's store backend application." });
 });
+
+app.get('/connect', (req, res) => {
+	let sequelize = '';
+	try {
+		sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
+			host: dbConfig.HOST,
+			port: dbConfig.PORT,
+			dialect: dbConfig.dialect,
+			operatorsAliases: false,
+			pool: {
+				max: dbConfig.pool.max,
+				min: dbConfig.pool.min,
+				acquire: dbConfig.pool.acquire,
+				idle: dbConfig.pool.idle,
+			},
+		});
+
+		res.json({ message: "Connected to DB" });
+
+	} catch (e) {
+		res.json({ message: e });
+	}
+});
+
 
 app.use('/', routes);
 
