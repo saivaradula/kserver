@@ -6,7 +6,7 @@ const routes = require('./app/routes');
 
 var corsOptions = {
 	// origin: "http://localhost:3002"
-	origin: 'http://ec2-3-234-250-196.compute-1.amazonaws.com',
+	origin: 'http://44.200.120.203',
 };
 
 app.use(cors(corsOptions));
