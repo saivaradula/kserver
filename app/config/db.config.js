@@ -1,6 +1,6 @@
 module.exports = {
 	HOST: 'database-1.cimalhzqniaq.us-east-2.rds.amazonaws.com',
-	USER: 'admins',
+	USER: 'admin',
 	PASSWORD: 'RightCh0ice',
 	DB: 'kadali',
 	dialect: 'mysql',
