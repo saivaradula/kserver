@@ -13,6 +13,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"cors": "^2.8.5",
+		"ec2-publicip": "^1.0.4",
 		"express": "^4.17.1",
 		"md5": "^2.3.0",
 		"mysql2": "^2.3.3",

@@ -1,8 +1,8 @@
 module.exports = {
-	HOST: 'rcdbinstance.c418ddmyspkz.us-east-1.rds.amazonaws.com',
-	USER: 'admin',
+	HOST: 'database-1.cimalhzqniaq.us-east-2.rds.amazonaws.com',
+	USER: 'admins',
 	PASSWORD: 'RightCh0ice',
-	DB: 'rcdatabase',
+	DB: 'kadali',
 	dialect: 'mysql',
 	PORT: 3306,
 	pool: {
