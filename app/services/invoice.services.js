@@ -59,7 +59,7 @@ exports.findInvoiceById = invid => {
 exports.addNewInvoice = async (req) => {
 	let invoiceStatus = 1;
 	let itype = 'draft';
-
+	console.log(req.body)
 	if (req.body.payment_type === 4) {
 		invoiceStatus = 2;
 		itype = 'invoice'; // As advanced is paid.
@@ -69,7 +69,7 @@ exports.addNewInvoice = async (req) => {
 	const sql = `INSERT INTO invoice(
 		invoice_id, type, to_name, to_address, to_phone,
 		contactname, contactphone, art_phone,
-		art_director_name, content_type, prop_receiver,
+		art_director_name, content_type, prop_receiver, pickupDate,
 		startDate, endDate, gst, invoice_payment, totalCost,
 		invoice_status, discount, gstpercentage, finalamount,
 		herodirector, name, vendoraddress, payableamount, prop_receiver_name, isblocked)
@@ -77,6 +77,7 @@ exports.addNewInvoice = async (req) => {
 		'${req.body.invoice_id}', '${itype}', '${req.body.toName}', '${req.body.address}', '${req.body.companyPhone}',
 		'${req.body.contactName}', '${req.body.contactPhone}', '${req.body.artPhone}',
 		'${req.body.artDirector}', '${req.body.contentType}', '${req.body.receiver}',
+		'${req.body.pickedon}',
 		'${req.body.startDate}', '${req.body.endDate}', '${req.body.gst}', '${req.body.payment_type}', '${req.body.totalCost}',
 		'${invoiceStatus}', '${req.body.discount}', '${req.body.gstpercentage}', '${req.body.finalamount}',
 		'${req.body.isWhat}', '${req.body.isWhatName}', 
@@ -126,10 +127,10 @@ exports.addAddress = (req) => {
 };
 
 exports.addDraft = (req) => {
-	const sql = `INSERT INTO invoice_products(invoice_id, code, days, cost, startDate, endDate, quantity, isBlocked)
+	const sql = `INSERT INTO invoice_products(invoice_id, code, days, cost, pickupDate, startDate, endDate, quantity, isBlocked)
 	VALUES(
 		'${req.body.invoice_id}', '${req.body.code}', '${req.body.days}', '${req.body.cost}',
-		'${req.body.startDate}', '${req.body.endDate}', '${req.body.quantity}', '${req.body.isBlocked}'
+		'${req.body.pickedon}', '${req.body.startDate}', '${req.body.endDate}', '${req.body.quantity}', '${req.body.isBlocked}'
 	); `;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
@@ -290,7 +291,8 @@ exports.getReturnDetails = (id, isDamaged, isPending) => {
 			i.finalamount, i.gstpercentage, i.discount, i.gst,
 			i.herodirector AS isWhat, i.name AS isWhatName,
 			i.payableamount, i.vendoraddress, i.gst,
-			i.prop_receiver_name, 
+			i.prop_receiver_name, 			
+			i.serial_no,
 			ip.is_damaged, ip.damaged_type, ip.damage_cost
 			FROM invoice i, products p, 
 			invoice_products ip
@@ -341,7 +343,8 @@ exports.getDetails = (id) => {
 				i.finalamount, i.gstpercentage, i.discount, i.gst,
 				i.herodirector AS isWhat, i.name AS isWhatName,
 				i.payableamount, i.vendoraddress, i.gst,
-				i.prop_receiver_name
+				i.prop_receiver_name,
+				i.serial_no
 				FROM invoice i, products p, invoice_products ip, invoice_status ist, invoice_payments_types ipt
 				WHERE i.invoice_id = '${id}'
 				AND p.code = ip.code 
@@ -494,6 +497,7 @@ exports.getInvoiceList = (to) => {
 		COUNT(p.code) AS totalProducts,
 		SUM(p.cost) AS totalCost,
 		i.startDate AS CreatedOn,
+		i.pickupDate, 
 		i.to_name, i.to_address, i.to_phone,
 		ist.value AS is_value,
 		ipt.value AS ip_value,

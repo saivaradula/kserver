@@ -35,4 +35,10 @@ module.exports = {
 * 	ADD `is_received_archieved` TINYINT(2) NULL DEFAULT '0' AFTER `is_pending_archieved`, 
 * 	ADD `is_damaged_archieved` TINYINT(2) NOT NULL DEFAULT '0' AFTER `is_received_archieved`;
 *  
+
+ALTER TABLE `invoice` ADD `serial_no` VARCHAR(100) NULL AFTER `is_damaged_archieved`;
+ALTER TABLE `invoice` ADD `pickupDate` DATETIME NULL AFTER `type`;
+ALTER TABLE `invoice_products` ADD `pickupDate` DATE NULL AFTER `added_on`;
+
+
 * */

@@ -238,6 +238,7 @@ exports.updateProduct = req => {
 }
 
 exports.add = (req) => {
+	console.log(req)
 	const sql = `INSERT INTO products (name, code, image, category, brand, cost, price, quantity, 
 		alert, model, subcategory, unit, prtype, nickname, godawan)
 		VALUES ('${req.body.name}', '${req.body.code}', '${req.body.prodImage}', '${req.body.category}',

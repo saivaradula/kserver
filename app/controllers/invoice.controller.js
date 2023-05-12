@@ -12,11 +12,12 @@ const intToChar = (int) => {
 }
 
 exports.addNewInvoice = (req, res) => {
+
 	let d = new Date();
 	let nd = getFirstLetter(req.body.toName) + "-" + d.getFullYear() + (d.toLocaleString('en-us', { month: 'short' }).toUpperCase()) + d.getDate();
 	invoice.findInvoiceById(nd).then((resp) => {
-		console.log(resp)
 		let id = resp[0].Ids ? parseInt(resp[0].Ids) : 0;
+		req.body.serial_no = resp[0].Ids + 1;
 		req.body.invoice_id = nd + "-" + intToChar(id);
 		id = req.body.invoice_id;
 		invoice.addNewInvoice(req).then((response) => {
