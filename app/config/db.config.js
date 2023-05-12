@@ -39,6 +39,8 @@ module.exports = {
 ALTER TABLE `invoice` ADD `serial_no` VARCHAR(100) NULL AFTER `is_damaged_archieved`;
 ALTER TABLE `invoice` ADD `pickupDate` DATETIME NULL AFTER `type`;
 ALTER TABLE `invoice_products` ADD `pickupDate` DATE NULL AFTER `added_on`;
+ALTER TABLE `products` ADD `prsize` VARCHAR(50) NULL AFTER `subcategory`;
+
 
 
 * */

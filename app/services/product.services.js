@@ -36,7 +36,7 @@ exports.getTotalProducts = (req) => {
 	} else {
 		return products.findAll({
 			where: {
-				[Op.and]: { status: req.params.archieved },
+				[Op.and]: { status: archieved },
 				[Op.or]: [
 					{
 						name: {
