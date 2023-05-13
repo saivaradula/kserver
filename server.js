@@ -6,7 +6,7 @@ const routes = require('./app/routes');
 
 var corsOptions = {
 	// origin: "http://localhost:3002"
-	origin: 'http://3.135.195.88',
+	origin: 'http://3.145.92.125',
 };
 
 app.use(cors(corsOptions));
