@@ -8,5 +8,7 @@ router.post('/consumed', products.getConsumed);
 router.post('/delete/:id', products.deleteCode)
 router.get('/getNextCode/:code', products.getNextCode)
 
+router.post('/addscans', products.addScannedItems)
+
 
 module.exports = router;

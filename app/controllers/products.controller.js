@@ -20,6 +20,12 @@ exports.addProduct = (req, res) => {
 	});
 };
 
+exports.addScannedItems = (req, res) => {
+	products.addScans(req).then((response) => {
+		return res.send(response).status(200);
+	})
+}
+
 exports.updateProduct = (req, res) => {
 	products.updateProduct(req).then((response) => {
 		return res.send(response).status(200);

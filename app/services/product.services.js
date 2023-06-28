@@ -237,6 +237,15 @@ exports.updateProduct = req => {
 	});
 }
 
+exports.addScans = (req) => {
+	const sql = `INSERT INTO scanned_items (items, added_by, company)
+		VALUES ('${req.body.ids}', 1, '${req.body.company}');
+	`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.INSERT,
+	});
+}
+
 exports.add = (req) => {
 	console.log(req)
 	const sql = `INSERT INTO products (name, code, image, category, brand, cost, price, quantity, 
