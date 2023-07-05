@@ -145,6 +145,13 @@ exports.getAllProducts = (req) => {
 	}
 };
 
+exports.getScanned = () => {
+	let sql = `SELECT * FROM scanned_items WHERE status = 1`
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
 exports.findProduct = (req) => {
 	let sql = `SELECT p.name, p.code, i.invoice_id, i.prop_receiver_name, i.to_name,
 					  i.content_type, i.startDate, i.endDate, ip.rstatus, i.isBlocked

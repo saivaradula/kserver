@@ -5,8 +5,8 @@ const db = require('./app/models');
 const routes = require('./app/routes');
 
 var corsOptions = {
-	// origin: "http://localhost:3002"
-	origin: 'http://3.144.104.147',
+	origin: "http://localhost:3002"
+	// origin: 'http://3.144.104.147',
 };
 
 app.use(cors(corsOptions));
