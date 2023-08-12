@@ -7,13 +7,16 @@ const item = require('./items.routes');
 const productlist = require('./products.routes');
 const auth = require('./auth.routes');
 
-routes.use('/products', products);
-routes.use('/category', category);
-routes.use('/invoice', invoice);
-routes.use('/items', item);
-routes.use('/rchoice', productlist)
+// const pathStarts = '/backend/'
+const pathStarts = '/'
 
-routes.use('/auth', auth)
-routes.use('/admin', admin)
+routes.use(`${pathStarts}products`, products);
+routes.use(`${pathStarts}category`, category);
+routes.use(`${pathStarts}invoice`, invoice);
+routes.use(`${pathStarts}items`, item);
+routes.use(`${pathStarts}rchoice`, productlist)
+
+routes.use(`${pathStarts}auth`, auth)
+routes.use(`${pathStarts}admin`, admin)
 
 module.exports = routes;

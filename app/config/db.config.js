@@ -1,7 +1,7 @@
 // module.exports = {
-// 	HOST: 'database-1.cimalhzqniaq.us-east-2.rds.amazonaws.com',
-// 	USER: 'admin',
-// 	PASSWORD: 'RightCh0ice',
+// 	HOST: 'localhost',
+// 	USER: 'kadali_dbuser',
+// 	PASSWORD: 'q1w2e3R$T%Y^',
 // 	DB: 'kadali',
 // 	dialect: 'mysql',
 // 	PORT: 3306,
