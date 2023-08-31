@@ -1,8 +1,8 @@
 // module.exports = {
-// 	HOST: 'localhost',
+// 	HOST: '68.178.159.99',
 // 	USER: 'kadali_dbuser',
 // 	PASSWORD: 'q1w2e3R$T%Y^',
-// 	DB: 'kadali',
+// 	DB: 'kadalis',
 // 	dialect: 'mysql',
 // 	PORT: 3306,
 // 	pool: {
@@ -17,7 +17,7 @@
 module.exports = {
 	HOST: 'localhost',
 	USER: 'root',
-	PASSWORD: '',
+	PASSWORD: 'root',
 	DB: 'kadalis',
 	dialect: 'mysql',
 	PORT: 3306,
