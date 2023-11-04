@@ -11,7 +11,8 @@ exports.add = (req) => {
 };
 
 exports.checkCategory = (req) => {
-	const sql = `SELECT name FROM categories WHERE LOWER(name) = '${req.body.name.toLowerCase()}'`;
+	const sql = `SELECT name FROM categories WHERE 
+		LOWER(name) = '${req.body.name.toLowerCase()}'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
@@ -24,8 +25,17 @@ exports.getName = (req) => {
 	});
 }
 
+exports.getProductsListByCategory = (name) => {
+	const sql = `SELECT code, name, image, nickname, price, subcategory  FROM products 
+			WHERE LOWER(category) = '${name.toLowerCase()}' AND status = 1`;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.SELECT,
+	});
+}
+
 exports.getProductByCategory = (name) => {
-	const sql = `SELECT count(id) as products FROM products WHERE LOWER(category) = '${name.toLowerCase()}'`;
+	const sql = `SELECT count(id) as products FROM products 
+	WHERE status =1 AND LOWER(category) = '${name.toLowerCase()}'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});

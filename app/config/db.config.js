@@ -1,23 +1,7 @@
-// module.exports = {
-// 	HOST: '68.178.159.99',
-// 	USER: 'kadali_dbuser',
-// 	PASSWORD: 'q1w2e3R$T%Y^',
-// 	DB: 'kadalis',
-// 	dialect: 'mysql',
-// 	PORT: 3306,
-// 	pool: {
-// 		max: 5,
-// 		min: 0,
-// 		acquire: 30000,
-// 		idle: 10000,
-// 	},
-// };
-
-// Local DB.
 module.exports = {
-	HOST: 'localhost',
-	USER: 'root',
-	PASSWORD: 'root',
+	HOST: '68.178.159.99',
+	USER: 'kadali_dbuser',
+	PASSWORD: 'q1w2e3R$T%Y^',
 	DB: 'kadalis',
 	dialect: 'mysql',
 	PORT: 3306,
@@ -28,6 +12,22 @@ module.exports = {
 		idle: 10000,
 	},
 };
+
+// Local DB.
+// module.exports = {
+// 	HOST: 'localhost',
+// 	USER: 'root',
+// 	PASSWORD: 'root',
+// 	DB: 'kadalis',
+// 	dialect: 'mysql',
+// 	PORT: 3306,
+// 	pool: {
+// 		max: 5,
+// 		min: 0,
+// 		acquire: 30000,
+// 		idle: 10000,
+// 	},
+// };
 
 /**
 * ALTER TABLE `invoice` 

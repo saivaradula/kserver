@@ -92,7 +92,6 @@ exports.getAllProducts = (req) => {
 	console.log("ss", req.params);
 	if (ss === '' || ss === 'undefined' || ss === undefined) {
 		if (damaged > 0) {
-			console.log('ss')
 			return products.findAll({
 				offset: ofst,
 				limit: 25,
@@ -177,10 +176,11 @@ exports.getConsumed = (id, sdate, edate) => {
 	try {
 		let sql = `SELECT SUM(ip.quantity) AS Q
 				FROM 
-				invoice_products ip, invoice i 
+				invoice_products ip, invoice i, products p
 				WHERE ip.code = '${id}' AND ip.status = 1 AND i.status = 1 AND
 				i.invoice_id = ip.invoice_id AND ( i.type = 'invoice' OR i.type = 'draft')
 				AND rstatus = 'NR' AND ip.is_damaged = 0
+				AND p.code = ip.code AND p.status = 1
 				AND
 				( ( '${sdate}' BETWEEN ip.startDate AND ip.endDate )
 				OR ( '${edate}' BETWEEN ip.startDate AND ip.endDate ) )

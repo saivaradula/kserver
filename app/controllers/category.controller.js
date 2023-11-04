@@ -40,5 +40,11 @@ exports.deleteCategory = async (req, res) => {
 			return res.send(true).status(200);
 		});
 	}
+}
 
+exports.products = async ( req, res ) => {
+	await category.getProductsListByCategory(req.body.category).then( response => {
+		return res.send(response).status(200);
+	})
+	
 }

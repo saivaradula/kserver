@@ -87,8 +87,15 @@ exports.addNewInvoice = async (req) => {
 
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
-	});
+	});0
 };
+
+exports.clearScannedItem = (req) => {
+	const sql = `UPDATE scanned_items SET status =0 WHERE id = '${req.body.scannedItemId}' `;
+	return db.sequelize.query(sql, {
+		type: db.sequelize.QueryTypes.UPDATE,
+	});
+}
 
 exports.addPayment = (req) => {
 	const sql = `INSERT INTO invoice_payments(

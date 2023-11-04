@@ -20,7 +20,8 @@ exports.addNewInvoice = (req, res) => {
 		req.body.serial_no = resp[0].Ids + 1;
 		req.body.invoice_id = nd + "-" + intToChar(id);
 		id = req.body.invoice_id;
-		invoice.addNewInvoice(req).then((response) => {
+		invoice.addNewInvoice(req).then(async (response) => {
+			await invoice.clearScannedItem(req)
 			invoice.addPayment(req).then((resp) => {
 				return res.send(id).status(200);
 			});
