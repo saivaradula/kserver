@@ -1,5 +1,5 @@
-const { now } = require('sequelize/dist/lib/utils');
-const db = require('../models');
+// const { now } = require("sequelize/dist/lib/utils");
+const db = require("../models");
 const category = db.category;
 const Op = db.Sequelize.Op;
 
@@ -16,14 +16,14 @@ exports.checkCategory = (req) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getName = (req) => {
 	const sql = `SELECT name FROM categories WHERE id = '${req.body.id}'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getProductsListByCategory = (name) => {
 	const sql = `SELECT code, name, image, nickname, price, subcategory  FROM products 
@@ -31,7 +31,7 @@ exports.getProductsListByCategory = (name) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getProductByCategory = (name) => {
 	const sql = `SELECT count(id) as products FROM products 
@@ -39,14 +39,14 @@ exports.getProductByCategory = (name) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.deleteCategory = (req) => {
 	const sql = `UPDATE categories SET status = 0 WHERE id = ${req.body.id}`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.DELETE,
 	});
-}
+};
 
 exports.getAllCategories = (req) => {
 	let page = req.params.p;
@@ -57,21 +57,19 @@ exports.getAllCategories = (req) => {
 			offset: ofst,
 			limit: 10,
 			where: {
-				status: 1
+				status: 1,
 			},
-			order: [['id', 'desc']],
+			order: [["id", "desc"]],
 		});
 	} catch (e) {
 		console.log(e.getMessage());
 	}
-
 };
 
 exports.getTotalCategories = () => {
 	return category.findAll({
 		where: {
-			status: 1
+			status: 1,
 		},
-	}
-	);
+	});
 };

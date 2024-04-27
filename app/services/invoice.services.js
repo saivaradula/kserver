@@ -1,19 +1,20 @@
-const { now } = require('sequelize/dist/lib/utils');
-const db = require('../models');
-const { getPercentagesForNew, getPercentagesForOld } = require('./daycounter')
+// const { now } = require('sequelize/dist/lib/utils');
+
+const db = require("../models");
+const { getPercentagesForNew, getPercentagesForOld } = require("./daycounter");
 const invoice = db.invoice;
 const Op = db.Sequelize.Op;
 
-const productService = require('../services/product.services');
+const productService = require("../services/product.services");
 
 const PRTYPES = {
-	NEW: 'new',
-	OLD: 'used',
-	ANTIQUE: 'antique',
-	DAMAGE: 'damage'
-}
+	NEW: "new",
+	OLD: "used",
+	ANTIQUE: "antique",
+	DAMAGE: "damage",
+};
 
-exports.updateInvoice = req => {
+exports.updateInvoice = (req) => {
 	const sql = `UPDATE invoice SET 
 		to_name = '${req.body.toName}', 
 		to_address = '${req.body.address}',
@@ -39,32 +40,29 @@ exports.updateInvoice = req => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
 const getFirstLetter = (words) => {
 	let matches = words.match(/\b(\w)/g);
-	return matches.join('').toUpperCase();
-}
+	return matches.join("").toUpperCase();
+};
 
-
-exports.findInvoiceById = invid => {
+exports.findInvoiceById = (invid) => {
 	const sqlCheck = `SELECT count(invoice_id) AS Ids
 						FROM invoice WHERE invoice_id LIKE '%${invid}%'`;
 	return db.sequelize.query(sqlCheck, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
-
+};
 
 exports.addNewInvoice = async (req) => {
 	let invoiceStatus = 1;
-	let itype = 'draft';
-	console.log(req.body)
+	let itype = "draft";
+	console.log(req.body);
 	if (req.body.payment_type === 4) {
 		invoiceStatus = 2;
-		itype = 'invoice'; // As advanced is paid.
+		itype = "invoice"; // As advanced is paid.
 	}
-
 
 	const sql = `INSERT INTO invoice(
 		invoice_id, type, to_name, to_address, to_phone,
@@ -87,7 +85,8 @@ exports.addNewInvoice = async (req) => {
 
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
-	});0
+	});
+	0;
 };
 
 exports.clearScannedItem = (req) => {
@@ -95,7 +94,7 @@ exports.clearScannedItem = (req) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
 exports.addPayment = (req) => {
 	const sql = `INSERT INTO invoice_payments(
@@ -166,7 +165,7 @@ exports.getBlockedInvoice = (end) => {
 	} catch (e) {
 		console.log(e.getMessage());
 	}
-}
+};
 
 exports.getDrafts = (end) => {
 	try {
@@ -227,8 +226,8 @@ exports.getInvoicePayments = (invoiceId) => {
 };
 
 exports.getReturnDetails = (id, isDamaged, isPending) => {
-	let sql = '';
-	if (isPending == 'pending') {
+	let sql = "";
+	if (isPending == "pending") {
 		sql = `SELECT
 			i.invoice_id,
 			p.id AS product_id,
@@ -375,7 +374,7 @@ exports.getInvoiceAmounts = (id) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.deleteInvoice = async (id) => {
 	const sql = `UPDATE invoice SET status = 0
@@ -383,10 +382,9 @@ exports.deleteInvoice = async (id) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
 exports.removeItem = async (id, code, price) => {
-
 	let p = await this.getInvoiceAmounts(id);
 	let { totalCost, finalamount, gstpercentage, discount, payableamount } = p[0];
 
@@ -401,7 +399,7 @@ exports.removeItem = async (id, code, price) => {
 	}
 
 	if (gstpercentage > 0) {
-		let gst = parseFloat(finalamount * (gstpercentage / 100))
+		let gst = parseFloat(finalamount * (gstpercentage / 100));
 		payableamount = parseFloat(finalamount + gst);
 	}
 
@@ -430,15 +428,15 @@ exports.invoicePayment = (req) => {
 	let d = new Date();
 	let nd =
 		d.getFullYear() +
-		'-' +
+		"-" +
 		(d.getMonth() + 1) +
-		'-' +
+		"-" +
 		d.getDate() +
-		' ' +
+		" " +
 		d.getHours() +
-		':' +
+		":" +
 		d.getMinutes() +
-		':' +
+		":" +
 		d.getSeconds();
 	const sql = `UPDATE invoice 
 				SET payment_method = '${req.body.payMethod}',
@@ -562,9 +560,9 @@ exports.searchInvoices = (ss, to) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
-exports.getImagesOfInvoice = id => {
+exports.getImagesOfInvoice = (id) => {
 	const sql = `SELECT IP.quantity, P.code, P.image, I.startDate, I.type
 				FROM invoice I, products P, invoice_products IP
 				WHERE I.invoice_id = '${id}'
@@ -573,7 +571,7 @@ exports.getImagesOfInvoice = id => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getImagesOfInvoiceByType = (id, iType) => {
 	// -- AND I.isBlocked - 0
@@ -587,7 +585,7 @@ exports.getImagesOfInvoiceByType = (id, iType) => {
 			   	WHERE ${where}`;
 
 	switch (iType) {
-		case 'pending': {
+		case "pending": {
 			sql = `${select}  
 					FROM invoice I, products P, invoice_products IP					
 					WHERE ${where} AND 
@@ -597,7 +595,7 @@ exports.getImagesOfInvoiceByType = (id, iType) => {
 					P.code = IP.code`;
 			break;
 		}
-		case 'returned': {
+		case "returned": {
 			sql = `${select}  
 					FROM invoice I, products P, invoice_products IP					
 					WHERE ${where} AND 
@@ -608,7 +606,7 @@ exports.getImagesOfInvoiceByType = (id, iType) => {
 			break;
 		}
 
-		case 'damaged': {
+		case "damaged": {
 			sql = `${select}  
 					FROM invoice I, products P, invoice_products IP					
 					WHERE ${where} AND 
@@ -618,14 +616,15 @@ exports.getImagesOfInvoiceByType = (id, iType) => {
 					P.code = IP.code`;
 			break;
 		}
-		default: { break; }
+		default: {
+			break;
+		}
 	}
-
 
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getPaidInvoiceList = (to) => {
 	const sql = `SELECT
@@ -664,7 +663,7 @@ exports.validateReturnProduct = (id, pid) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.addReturnProducts = async (product, retDate, invoice_id) => {
 	const sql = `INSERT INTO return_products
@@ -678,8 +677,7 @@ exports.addReturnProducts = async (product, retDate, invoice_id) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
 	});
-
-}
+};
 
 exports.updateProducts = async (product, recievedData) => {
 	// console.log(product)
@@ -691,11 +689,11 @@ exports.updateProducts = async (product, recievedData) => {
 			type: db.sequelize.QueryTypes.UPDATE,
 		});
 
-		if (recievedData.damaged_type === 'partial') {
-
+		if (recievedData.damaged_type === "partial") {
 			let p = await productService.getProductDetails(`${product.code}-D`);
 			if (p.length > 0) {
-				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
+				let quantity =
+					parseInt(p[0].quantity) + parseInt(recievedData.rquantity);
 				let s = `UPDATE products 
 					SET 
 					is_damaged = 1,
@@ -722,10 +720,13 @@ exports.updateProducts = async (product, recievedData) => {
 			}
 		}
 
-		if (recievedData.damaged_type === 'full') {
-			let p = await productService.getProductDetails(`${product.code}-FULL_DAMAGED`);
+		if (recievedData.damaged_type === "full") {
+			let p = await productService.getProductDetails(
+				`${product.code}-FULL_DAMAGED`
+			);
 			if (p.length > 0) {
-				let quantity = parseInt(p[0].quantity) + parseInt(recievedData.rquantity)
+				let quantity =
+					parseInt(p[0].quantity) + parseInt(recievedData.rquantity);
 				let s = `UPDATE products 
 					SET 
 					is_damaged = 1,
@@ -753,29 +754,28 @@ exports.updateProducts = async (product, recievedData) => {
 			}
 		}
 	}
-}
+};
 
-exports.archieve = async req => {
-	console.log(req.body)
+exports.archieve = async (req) => {
+	console.log(req.body);
 
-	let field = (req.body.iType === 'pending') ?
-		`is_pending_archieved = ${req.body.archieve}`
-		:
-		(req.body.iType === 'returned') ?
-			`is_received_archieved = ${req.body.archieve}`
-			: `is_damaged_archieved = ${req.body.archieve}`
-
+	let field =
+		req.body.iType === "pending"
+			? `is_pending_archieved = ${req.body.archieve}`
+			: req.body.iType === "returned"
+			? `is_received_archieved = ${req.body.archieve}`
+			: `is_damaged_archieved = ${req.body.archieve}`;
 
 	let sql = `UPDATE invoice SET ${field} WHERE invoice_id = '${req.body.invoice}' `;
 
 	db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
 exports.returnList = async (req) => {
-	let sql = ''
-	if (req.body.type === 'pending') {
+	let sql = "";
+	if (req.body.type === "pending") {
 		sql = `SELECT i.invoice_id AS invoice,
 		COUNT(p.code) AS totalProducts,
 			SUM(p.cost) AS totalCost,
@@ -799,8 +799,11 @@ exports.returnList = async (req) => {
 				AND i.is_pending_archieved = ${req.body?.is_archieved ?? 0}
 				GROUP BY i.invoice_id ORDER BY i.id DESC LIMIT 0, 100 `;
 	} else {
-		let cond = req.body.type === 'damaged' ? 1 : 0;
-		let r = req.body.type === 'damaged' ? ' i.is_damaged_archieved' : ' i.is_received_archieved'
+		let cond = req.body.type === "damaged" ? 1 : 0;
+		let r =
+			req.body.type === "damaged"
+				? " i.is_damaged_archieved"
+				: " i.is_received_archieved";
 		sql = `SELECT
 					rp.invoice_id AS invoice,
 					SUM(rp.quantity) AS totalProducts,
@@ -824,21 +827,21 @@ exports.returnList = async (req) => {
 	return await db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	const sql = `SELECT id, startDate, quantity, days FROM invoice_products WHERE
 	invoice_id = '${invoice_id}' AND rstatus = 'NR' AND code = '${product.original_code}'`;
 
-	console.log(sql)
+	console.log(sql);
 	const results = await db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
 
-	let t = new Date(retDate)
+	let t = new Date(retDate);
 	let cost = 0;
 	let d = t.getTime() - results[0].startDate.getTime();
-	d = Math.ceil(d / (1000 * 3600 * 24)) + 1
+	d = Math.ceil(d / (1000 * 3600 * 24)) + 1;
 
 	// console.log("Days - ", d)
 	// console.log(results);
@@ -848,42 +851,42 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 		case PRTYPES.ANTIQUE:
 		case PRTYPES.NEW: {
 			cost = (
-				(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
-					parseInt(results[0].quantity)).toFixed(2)
-			)
+				((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+				parseInt(results[0].quantity)
+			).toFixed(2);
 			break;
 		}
 		case PRTYPES.DAMAGE:
 		case PRTYPES.OLD: {
 			cost = (
-				(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
-					parseInt(results[0].quantity)).toFixed(2)
-			)
+				((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+				parseInt(results[0].quantity)
+			).toFixed(2);
 			break;
 		}
 	}
 
 	if (product.rquantity < results[0].quantity) {
 		// add new record in invoice and less the number.
-		let ss = new Date(results[0].startDate)
-		let s = ss.getFullYear() + '-' + (ss.getMonth() + 1) + '-' + ss.getDate()
+		let ss = new Date(results[0].startDate);
+		let s = ss.getFullYear() + "-" + (ss.getMonth() + 1) + "-" + ss.getDate();
 		let q = product.rquantity;
 
 		switch (p[0].prtype) {
 			case PRTYPES.ANTIQUE:
 			case PRTYPES.NEW: {
 				cost = (
-					(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
-						parseInt(q)).toFixed(2)
-				)
+					((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+					parseInt(q)
+				).toFixed(2);
 				break;
 			}
 			case PRTYPES.DAMAGE:
 			case PRTYPES.OLD: {
 				cost = (
-					(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
-						parseInt(q)).toFixed(2)
-				)
+					((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+					parseInt(q)
+				).toFixed(2);
 				break;
 			}
 		}
@@ -901,13 +904,12 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			type: db.sequelize.QueryTypes.SELECT,
 		});
 
-
 		let insSql;
 		if (chkR.length) {
-			let quan = Number(chkR[0].quantity) + Number(product.rquantity)
+			let quan = Number(chkR[0].quantity) + Number(product.rquantity);
 			insSql = `UPDATE invoice_products SET
 			 quantity = ${quan}
-			WHERE id = ${chkR[0].id}`
+			WHERE id = ${chkR[0].id}`;
 		} else {
 			insSql = `INSERT INTO invoice_products
 			(endDate, days, cost, invoice_id, code,
@@ -916,7 +918,7 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 				'${retDate}', ${d}, ${cost}, '${invoice_id}', '${product.code}',
 				'${s}', ${q}, 'R', ${product.isDamaged}, ${product.damaged_cost},
 				'${product.damaged_type}'
-			)`
+			)`;
 		}
 
 		await db.sequelize.query(insSql, {
@@ -930,17 +932,17 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			case PRTYPES.ANTIQUE:
 			case PRTYPES.NEW: {
 				cost = (
-					(((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
-						parseInt(quantity)).toFixed(2)
-				)
+					((parseInt(p[0].price) * getPercentagesForNew(parseInt(d))) / 100) *
+					parseInt(quantity)
+				).toFixed(2);
 				break;
 			}
 			case PRTYPES.DAMAGE:
 			case PRTYPES.OLD: {
 				cost = (
-					(((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
-						parseInt(quantity)).toFixed(2)
-				)
+					((parseInt(p[0].price) * getPercentagesForOld(parseInt(d))) / 100) *
+					parseInt(quantity)
+				).toFixed(2);
 				break;
 			}
 		}
@@ -951,16 +953,13 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			cost = ${cost}
 			WHERE
 			rstatus = 'NR' AND
-			code = '${product.original_code}'`
+			code = '${product.original_code}'`;
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
 		});
-
-	}
-	else {
-
-		// update invoice records. , 
+	} else {
+		// update invoice records. ,
 		const updSql = `UPDATE invoice_products
 			SET
 			endDate = '${retDate}',
@@ -973,12 +972,11 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 			WHERE
 			invoice_id = '${invoice_id}' AND
 			rstatus = 'NR' AND
-			code = '${product.original_code}'`
+			code = '${product.original_code}'`;
 
 		await db.sequelize.query(updSql, {
 			type: db.sequelize.QueryTypes.UPDATE,
 		});
-
 	}
 
 	// update price, finalprice and payableamount in invoice.
@@ -1014,7 +1012,7 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	let discountAmt = totalCost * (invResults[0].discount / 100);
 	finalamount = totalCost - discountAmt;
 
-	let gstAmt = finalamount * (invResults[0].gstpercentage / 100)
+	let gstAmt = finalamount * (invResults[0].gstpercentage / 100);
 	payableamount = finalamount + gstAmt;
 
 	const updSql = `UPDATE invoice
@@ -1028,4 +1026,4 @@ exports.updateEndDates = async (p, product, retDate, invoice_id) => {
 	return await db.sequelize.query(updSql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};

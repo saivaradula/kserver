@@ -1,24 +1,24 @@
-const { now } = require('sequelize/dist/lib/utils');
-const db = require('../models');
+// const { now } = require('sequelize/dist/lib/utils');
+const db = require("../models");
 const products = db.products;
 const Op = db.Sequelize.Op;
 
-const escape = s => {
+const escape = (s) => {
 	let lookup = {
-		'&': "&amp;",
+		"&": "&amp;",
 		'"': "&quot;",
-		'\'': "&apos;",
-		'<': "&lt;",
-		'>': "&gt;"
+		"'": "&apos;",
+		"<": "&lt;",
+		">": "&gt;",
 	};
-	return s.replace(/[&"'<>]/g, c => lookup[c]);
-}
+	return s.replace(/[&"'<>]/g, (c) => lookup[c]);
+};
 
 exports.getTotalProducts = (req) => {
 	let ss = req.params.s;
 	let archieved = req.params.archieve;
 	let damaged = req.params.damaged;
-	if (ss === '' || ss === 'undefined' || ss === undefined) {
+	if (ss === "" || ss === "undefined" || ss === undefined) {
 		if (damaged > 0) {
 			return products.findAll({
 				where: { is_fully_damaged: damaged },
@@ -26,58 +26,57 @@ exports.getTotalProducts = (req) => {
 		}
 		if (archieved > 0) {
 			return products.findAll({
-				where: { status: !archieved, is_fully_damaged: '0' },
+				where: { status: !!archieved, is_fully_damaged: "0" },
 			});
 		} else {
 			return products.findAll({
-				where: { status: '1' },
+				where: { status: "1" },
 			});
 		}
 	} else {
 		return products.findAll({
 			where: {
-				[Op.and]: { status: archieved },
+				[Op.and]: { status: !!archieved },
 				[Op.or]: [
 					{
 						name: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						model: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						category: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						code: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						prtype: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						subcategory: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
 					},
 					{
 						nickname: {
-							[Op.like]: `%${ss.toLowerCase()}%`
-						}
-					}
+							[Op.like]: `%${ss.toLowerCase()}%`,
+						},
+					},
 				],
 			},
 		});
 	}
-
 };
 
 exports.getAllProducts = (req) => {
@@ -88,38 +87,38 @@ exports.getAllProducts = (req) => {
 	// active = archieved ? 1 : 0
 	let ofst = 0;
 	ofst = page > 1 ? (ofst = (page - 1) * 25) : 0;
-	console.clear()
-	console.log("ss", req.params);
-	if (ss === '' || ss === 'undefined' || ss === undefined) {
+
+	// console.log(req.params);
+	if (ss === "" || ss === "undefined" || ss === undefined) {
 		if (damaged > 0) {
 			return products.findAll({
 				offset: ofst,
 				limit: 25,
 				where: { is_fully_damaged: damaged },
-				order: [['id', 'desc']],
+				order: [["id", "desc"]],
 			});
 		}
 		if (archieved > 0) {
 			return products.findAll({
 				offset: ofst,
 				limit: 25,
-				where: { status: !archieved, is_fully_damaged: '0' },
-				order: [['id', 'desc']],
+				where: { status: !!archieved, is_fully_damaged: "0" },
+				order: [["id", "desc"]],
 			});
 		} else {
 			return products.findAll({
 				offset: ofst,
 				limit: 25,
-				where: { status: '1' },
-				order: [['id', 'desc']],
+				where: { status: "1" },
+				order: [["id", "desc"]],
 			});
 		}
-
 	} else {
+		console.log("Searched with : ", ss);
 		const sql = `SELECT * 
 					FROM products 
 					WHERE 
-						status = ${!archieved} AND 
+						status = ${!!archieved} AND 
 						( 
 							LOWER(name) LIKE '%${ss.toLowerCase()}%' 
 							OR
@@ -138,6 +137,7 @@ exports.getAllProducts = (req) => {
 						ORDER BY id desc
 						LIMIT ${ofst}, 10
 					`;
+
 		return db.sequelize.query(sql, {
 			type: db.sequelize.QueryTypes.SELECT,
 		});
@@ -145,11 +145,11 @@ exports.getAllProducts = (req) => {
 };
 
 exports.getScanned = () => {
-	let sql = `SELECT * FROM scanned_items WHERE status = 1`
+	let sql = `SELECT * FROM scanned_items WHERE status = 1`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.findProduct = (req) => {
 	let sql = `SELECT p.name, p.code, i.invoice_id, i.prop_receiver_name, i.to_name,
@@ -170,7 +170,7 @@ exports.findProduct = (req) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
 exports.getConsumed = (id, sdate, edate) => {
 	try {
@@ -204,23 +204,23 @@ exports.getProductDetails = (id) => {
 	}
 };
 
-exports.getNextCode = code => {
+exports.getNextCode = (code) => {
 	const sql = `SELECT code AS C FROM products 
-		WHERE code LIKE '${code}%' ORDER BY code ASC`;
+			WHERE code LIKE '%${code}%' ORDER BY code ASC`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});
-}
+};
 
-exports.deleteCode = req => {
+exports.deleteCode = (req) => {
 	const sql = `UPDATE products SET status = 0 WHERE code = '${req.params.id}'`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
-exports.updateProduct = req => {
-	req.body.brand = escape(req.body.brand)
+exports.updateProduct = (req) => {
+	req.body.brand = escape(req.body.brand);
 	const sql = `UPDATE products SET 
 				name = '${req.body.name}',
 				code = '${req.body.code}',
@@ -242,7 +242,7 @@ exports.updateProduct = req => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.UPDATE,
 	});
-}
+};
 
 exports.addScans = (req) => {
 	const sql = `INSERT INTO scanned_items (items, added_by, company)
@@ -251,10 +251,10 @@ exports.addScans = (req) => {
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.INSERT,
 	});
-}
+};
 
 exports.add = (req) => {
-	console.log(req)
+	console.log(req);
 	const sql = `INSERT INTO products (name, code, image, category, brand, cost, price, quantity, 
 		alert, model, subcategory, unit, prtype, nickname, godawan)
 		VALUES ('${req.body.name}', '${req.body.code}', '${req.body.prodImage}', '${req.body.category}',
