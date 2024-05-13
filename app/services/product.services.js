@@ -206,7 +206,7 @@ exports.getProductDetails = (id) => {
 
 exports.getNextCode = (code) => {
 	const sql = `SELECT code AS C FROM products 
-			WHERE code LIKE '%${code}%' ORDER BY code ASC`;
+			WHERE code LIKE '${code}%' ORDER BY code ASC`;
 	return db.sequelize.query(sql, {
 		type: db.sequelize.QueryTypes.SELECT,
 	});

@@ -42,18 +42,18 @@ exports.getNC = async (code) => {
 	return await products.getNextCode(code).then((response) => {
 		let returnS = code;
 		let nextNum = 0;
-		for (let i = 0; i < response.length; i++) {
-			/**
-			 * Represents the value of C after splitting the response with the given code.
-			 * @type {string[]}
-			 */
-			let c = response[i].C.split(code);
-			if (i + 1 == c[1]) {
-			} else {
-				if (nextNum == 0) nextNum = i + 1;
-			}
-		}
-		nextNum = nextNum ? nextNum : response.length + 1;
+		nextNum = response.length + 1;
+
+		// for (let i = 0; i < response.length; i++) {
+		// 	let c = response[i].C.split(code);
+		// 	console.log(i + 1, c);
+		// 	if (i + 1 == c[1]) {
+		// 	} else {
+		// 		if (nextNum == 0) nextNum = i + 1;
+		// 	}
+		// }
+
+		// nextNum = nextNum ? nextNum : response.length + 1;
 		returnS =
 			nextNum < 10
 				? returnS + "000" + nextNum
